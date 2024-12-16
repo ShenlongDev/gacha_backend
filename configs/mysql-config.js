@@ -1,17 +1,13 @@
 module.exports = {
-	host: "localhost",
-	username: "root",
-	password: "",
-	database: "gacha",
-
-	dialect: "mysql",
-	pool: {
-		max: 5,
-		min: 0,
-		acquire: 120000,
-		idle: 120000
-	},
-	dialectOptions: {
-		connectTimeout: 90000
-	}
+  HOST: "localhost",
+  USER: "root",
+  PASSWORD: "",
+  DB: "gacha",
+  dialect: "mysql",
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 30000
+  }
 };
