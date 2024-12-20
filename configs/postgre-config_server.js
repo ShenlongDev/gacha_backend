@@ -10,3 +10,6 @@ module.exports = {
   "dialect": "postgres",
   "logging": false
 };
+
+//gacha_server_2416
+//postgresql://gacha_admin:itMOw88ZcQrlPOswpUAfYW2ZQLOZWED5@dpg-ctims2dumphs73f4i7u0-a.oregon-postgres.render.com/gacha_0o57
