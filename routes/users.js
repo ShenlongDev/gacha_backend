@@ -87,7 +87,8 @@ router.post('/register', async function (req, res, next) {
 //POST /login
 router.post('/login', async function (req, res, next) {
   const { email, password } = req.body || {};
-  console.log(email, password);
+  console.log(req.body);
+
   if (!email || !password) {
     let err = new TypedError('login error', 400, 'missing_field', { message: "missing email or password" })
     return next(err)
