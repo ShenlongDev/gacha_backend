@@ -11,6 +11,7 @@ var expressValidator = require('express-validator');//req.checkbody()
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var gachasRouter = require('./routes/gachas');
+var badgesRouter = require('./routes/badges.route');
 
 // mongoose.connect(mongoConfig, { useNewUrlParser: true, useCreateIndex: true, },function(error){
 //   if(error) throw error
@@ -54,6 +55,7 @@ db.sequelize.sync();
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/gachas', gachasRouter);
+app.use('/badges', badgesRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -73,7 +73,7 @@ router.post('/register', async function (req, res, next) {
                 console.error(err);
                 throw err;
                 return next(err);
-              })
+              });
           });
         });
       }
@@ -86,19 +86,19 @@ router.post('/register', async function (req, res, next) {
 
 //POST /login
 router.post('/login', async function (req, res, next) {
-  const { email, password } = req.body || {};
   console.log(req.body);
-
+  const { email, password } = req.body || {};
+  // console.log(email, password);
   if (!email || !password) {
-    let err = new TypedError('login error', 400, 'missing_field', { message: "missing email or password" })
-    return next(err)
+    let err = new TypedError('login error', 400, 'missing_field', { message: "missing email or password" });
+    return next(err);
   }
-  // console.log(User);
   await User.findOne({ where: { email: email } })
     .then(user => {
+      // console.log(user);
       if (!user) {
-        let err = new TypedError('login error', 403, 'invalid_field', { message: "Incorrect email or password" })
-        return next(err)
+        let err = new TypedError('login error', 403, 'invalid_field', { message: "Incorrect email or password" });
+        return next(err);
       }
       bcrypt.compare(password, user.password, function (err, isMatch) {
         if (err) throw err;

@@ -8,10 +8,6 @@ const ensureAuthenticated = require('../modules/ensureAuthenticated')
 const GachaJS = require('../utils/gacha');
 const { Op } = require('sequelize');
 const { Gacha, User, GachaUser, GachaCategory, Address } = require("../models");
-// const Cart = require('../models/Cart');
-// const CartClass = require('../modules/Cart')
-// const Product = require('../models/Product')
-// const Variant = require('../models/Variant')
 
 const multer = require('multer');
 var path = require('path');
@@ -88,58 +84,6 @@ class getGiftCards {
         gift.gift_url = final_item.DetailPageURL !== undefined && final_item.DetailPageURL !== '' && final_item.DetailPageURL;
         gift.gift_img = final_item.Images && final_item.Images.Primary.Large.URL;
         gift.gift_price = final_item.Offers.Summaries[0].LowestPrice.Amount;
-        // let itemList = [];
-        // for (const i of items) {
-        //   // try {
-        //   var query = {};
-        //   query.asin = i.ASIN;
-        //   if (i.ItemInfo === undefined) {
-        //     query.name = `ASIN ${i.ASIN}に一致するJANコードは見つかりませんでした。`;
-        //   } else {
-        //     query.name = i.ItemInfo.Title.DisplayValue;
-        //     if (i.ItemInfo.ExternalIds !== undefined) {
-        //       query.jan = i.ItemInfo.ExternalIds.EANs.DisplayValues[0];
-        //       query.status = 1;
-        //     } else {
-        //       // query.jan = `ASIN ${i.ASIN}に一致するJANコードは見つかりませんでした。`;
-        //     }
-        //   }
-
-        //   if (i.DetailPageURL !== undefined && i.DetailPageURL !== '') {
-        //     query.shop_url = i.DetailPageURL;
-        //   }
-        //   if (i.Images !== undefined) {
-        //     query.img_url = i.Images.Primary.Small.URL;
-        //   }
-
-        //   let price = 0;
-        //   if (i.Offers !== undefined) {
-        //     if (i.Offers.Summaries[0].Condition.Value == 'New') {
-        //       price = i.Offers.Summaries[0].LowestPrice.Amount;
-        //     } else if (i.Offers.Summaries.length > 1 && i.Offers.Summaries[1].Condition.Value == 'New') {
-        //       price = i.Offers.Summaries[1].LowestPrice.Amount;
-        //     }
-        //   }
-        //   if (price != 0 && price !== undefined) {
-        //     query.am_price = price;
-        //   }
-
-        //   let itemQuantity = i.Offers.Listings[0].Availability.MaxOrderQuantity;
-        //   if (itemQuantity == null || itemQuantity === undefined) {
-        //     itemQuantity = i.Offers.Listings[0].Availability.MinOrderQuantity;
-        //   }
-        //   query.quantity = itemQuantity;
-
-
-        //   itemList = [...itemList, query];
-        //   // } catch (err) {
-        //   //   console.log(
-        //   //     "---------- forof item error ----------",
-        //   //     err.message
-        //   //   );
-        //   // }
-        // }
-        // console.log(itemList);
       })
       .catch((err) => {
         console.log("---------- amazon data CATCH error ----------", err);
@@ -174,7 +118,7 @@ router.post('/categories/edit', ensureAuthenticated, async function (req, res, n
   }
   else {
     let err = new TypedError('category edit error', 403, 'invalid_field', {
-      message: 'カテゴリ名は必須です。',
+      message: 'カテゴリー名は必須です。',
     })
     return next(err)
   }
@@ -193,7 +137,7 @@ router.post('/categories/add', ensureAuthenticated, async function (req, res, ne
   }
   else {
     let err = new TypedError('category add error', 403, 'invalid_field', {
-      message: 'カテゴリ名は必須です。',
+      message: 'カテゴリー名は必須です。',
     })
     return next(err)
   }
@@ -320,7 +264,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
   req.checkBody('name', '名前は必須です。').notEmpty();
   req.checkBody('point', 'ポイントが必要です。').notEmpty();
   req.checkBody('win_probability', '確率トが必要です。').notEmpty();
-  req.checkBody('category_id', ' カテゴリは必須です。').notEmpty();
+  req.checkBody('category_id', ' カテゴリーは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -344,7 +288,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   req.checkBody('name', '名前は必須です。').notEmpty();
   req.checkBody('point', 'ポイントが必要です。').notEmpty();
   req.checkBody('win_probability', '確率トが必要です。').notEmpty();
-  req.checkBody('category_id', ' カテゴリは必須です。').notEmpty();
+  req.checkBody('category_id', ' カテゴリーは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
