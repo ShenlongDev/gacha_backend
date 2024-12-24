@@ -1,25 +1,21 @@
 var createError = require('http-errors');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser')
-// var logger = require('morgan');
+var bodyParser = require('body-parser');
 var express = require('express');
-// var mongoose = require('mongoose');
-var cors = require('cors')
-var expressValidator = require('express-validator');//req.checkbody()
-// const mongoConfig = require('./configs/mongo-config')
+var cors = require('cors');
+var expressValidator = require('express-validator');
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var gachasRouter = require('./routes/gachas');
 var badgesRouter = require('./routes/badges.route');
+var giftsRouter = require('./routes/gifts.route');
+var gachausersRouter  = require('./routes/gacha_users.route');
 
-// mongoose.connect(mongoConfig, { useNewUrlParser: true, useCreateIndex: true, },function(error){
-//   if(error) throw error
-//     console.log(`connect mongodb success`);
-// });
+var app = express();
+app.use(cors());
 
-var app = express()
-app.use(cors())
 // Express validator
 app.use(expressValidator({
   errorFormatter: function (param, msg, value) {
@@ -41,21 +37,24 @@ app.use(expressValidator({
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-// app.use(logger('dev'));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-//set static dir
+// set static dir
 app.use(express.static(path.join(__dirname, 'public')));
 
 const db = require("./models");
 db.sequelize.sync();
-//routers
+
+// routers
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/gachas', gachasRouter);
 app.use('/badges', badgesRouter);
+app.use('/gifts', giftsRouter);
+app.use('/gachausers', gachausersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

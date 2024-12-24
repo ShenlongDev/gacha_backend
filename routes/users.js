@@ -5,16 +5,11 @@ const config = require('../configs/jwt-config')
 const ensureAuthenticated = require('../modules/ensureAuthenticated')
 var bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
-const { products, User, Address, GachaUser, sequelize } = require("../models");
-// const Cart = require('../models/Cart');
-// const CartClass = require('../modules/Cart')
-// const Product = require('../models/Product')
-// const Variant = require('../models/Variant')
+const { Payment, User, Address, GachaUser, sequelize } = require("../models");
 const TypedError = require('../modules/ErrorHandler')
 
-// const User = db.User;
 
-//POST /signin
+// POST /signin
 router.post('/register', async function (req, res, next) {
   let _user = req.body;
   req.checkBody('first_name', 'FirstName is required').notEmpty();
@@ -61,7 +56,7 @@ router.post('/register', async function (req, res, next) {
               .then(user => {
                 return res.json({
                   user_id: user.id,
-                  user_name: user.fisrt_name + ' ' + user.last_name,
+                  user_name: user.first_name + ' ' + user.last_name,
                   token: token,
                   role: user.role,
                   expire_in: '1h',
@@ -84,7 +79,7 @@ router.post('/register', async function (req, res, next) {
     })
 });
 
-//POST /login
+// POST /login
 router.post('/login', async function (req, res, next) {
   console.log(req.body);
   const { email, password } = req.body || {};
@@ -129,7 +124,7 @@ router.post('/login', async function (req, res, next) {
     })
 })
 
-//GET /
+// GET /
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
     .then(users => {
@@ -184,7 +179,7 @@ router.post('/:userId/edit', ensureAuthenticated, async function (req, res, next
     })
 })
 
-//Delete user
+// Delete user
 router.get('/:userId/delete', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId;
   await User.destroy({
@@ -313,23 +308,74 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
     }
   })
     .then(async (user) => {
-      await user.update(
-        {
-          point: parseInt(user.point) + parseInt(amount),
-          deposit: parseInt(user.deposit) + parseInt(amount)
+      await Payment.create({
+        user_id: user.id,
+        amount: parseInt(amount),
+        status: "deposit"
+       }).then(async payment => {
+        await user.update(
+          {
+            point: parseInt(user.point) + parseInt(amount),
+            deposit: parseInt(user.deposit) + parseInt(amount)
+          })
+          .then(user => {
+            res.status(201).json(user.point);
+          })
+          .catch(err => {
+            throw err;
+            return next(err);
+          })
         })
-        .then(user => {
-          res.status(201).json(user.point);
-        })
-        .catch(err => {
-          throw err;
-          return next(err);
-        })
+      .catch(err => {
+        console.error(err);
+        throw err;
+        return next(err);
+      });
+      
     })
     .catch(err => {
       throw err;
       return next(err);
     })
 })
+
+router.get('/payments/all', ensureAuthenticated, async function (req, res, next) {
+  console.log("here");
+  await Payment.findAll({where: { status:"deposit" }})
+    .then(payments => {
+      res.status(200).json(payments);
+    })
+    .catch(err => {
+      console.error(err);
+      throw err;
+      return next(err);
+    }); 
+})
+
+router.get('/:userId/payments', ensureAuthenticated, async function (req, res, next) {
+  let { userId } = req.params;
+  await User.findOne({
+    where: {
+      id: userId
+    }
+  })
+    .then(async (user) => {
+      await Payment.findAll({where: { user_id: userId, status:"deposit" }})
+        .then(payments => {
+          res.status(200).json(payments);
+        })
+        .catch(err => {
+          console.error(err);
+          throw err;
+          return next(err);
+        });      
+    })
+    .catch(err => {
+      throw err;
+      return next(err);
+    })
+})
+
+
 
 module.exports = router;

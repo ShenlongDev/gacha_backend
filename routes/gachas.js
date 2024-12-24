@@ -86,7 +86,7 @@ class getGiftCards {
         gift.gift_price = final_item.Offers.Summaries[0].LowestPrice.Amount;
       })
       .catch((err) => {
-        console.log("---------- amazon data CATCH error ----------", err);
+        console.log("---------- amazon data CATCH error ----------");
       });
     return gift;
   }
@@ -103,7 +103,7 @@ router.get('/categories', async function (req, res, next) {
     })
 })
 
-//POST category
+// POST category
 router.post('/categories/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   if (data.name != '') {
@@ -143,7 +143,7 @@ router.post('/categories/add', ensureAuthenticated, async function (req, res, ne
   }
 })
 
-//Delete category
+// Delete category
 router.get('/categories/:categoryId/delete', ensureAuthenticated, async function (req, res, next) {
   let categoryId = req.params.categoryId;
   await GachaCategory.destroy({
@@ -162,7 +162,7 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
     })
 })
 
-//GET Gachas/
+// GET Gachas/
 router.get('/category/:category', async function (req, res, next) {
   const category = req.params.category;
   const pageNumber = req.query.page || 1;
@@ -247,7 +247,7 @@ router.get('/category/:category', async function (req, res, next) {
   }
 })
 
-//GET Gacha
+// GET Gacha
 router.get('/:gachaId/item', async function (req, res, next) {
   const gachaId = req.params.gachaId;
   await Gacha.findOne({ where: { id: gachaId } })
@@ -356,11 +356,11 @@ router.get('/:gachaId/delete', ensureAuthenticated, async function (req, res, ne
 // gift card generating
 router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res, next) {
   const { gachaId, num } = req.params;
-  const decoded = jwt.decode(req.headers['authorization']);
+  const decoded = req.decoded;
   let gifts = [];
   await Gacha.findOne({ where: { id: gachaId } })
     .then(async (gacha) => {
-      await User.findOne({ where: { email: decoded.email } })
+      await User.findOne({ where: { email: decoded?.email } })
         .then(async (user) => {
           let sum = 0;
           for (let i = 1; i <= num; i++) {
@@ -567,6 +567,24 @@ router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res,
       model: User,
       attributes: ['first_name', 'last_name']
     }]
+  })
+    .then(async (gifts) => {
+      res.status(201).json(gifts);
+    })
+    .catch(err => {
+      throw err;
+      return next(err);
+    })
+})
+
+router.get('/histories', ensureAuthenticated, async function (req, res, next) {
+  await GachaUser.findAll({ include: [
+      {
+        model: User,
+        attributes: ['first_name', 'last_name']
+      },
+      { model: Address },
+    ]
   })
     .then(async (gifts) => {
       res.status(201).json(gifts);
