@@ -30,6 +30,9 @@ module.exports = (sequelize, Sequelize) => {
     badges: {
       type: Sequelize.STRING,
     },
+    content: {
+      type: Sequelize.STRING,
+    },
   },
     {
       timestamps: true
