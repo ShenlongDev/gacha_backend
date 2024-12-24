@@ -646,7 +646,7 @@ router.get('/gifts/:userId/remain', ensureAuthenticated, async function (req, re
 })
 
 // get badge
-router.get('/badge', ensureAuthenticated, async function (req, res, next) {
+router.get('/badge', async function (req, res, next) {
   await Badge.findAll()
     .then(badges => {
       res.status(200).json(badges);
@@ -655,6 +655,5 @@ router.get('/badge', ensureAuthenticated, async function (req, res, next) {
       return next(err);
     })
 })
-
 
 module.exports = router;
