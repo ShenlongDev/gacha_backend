@@ -4,6 +4,7 @@ const ensureAuthenticated = require('../modules/ensureAuthenticated');
 const paypal_config = require('../configs/paypal-config');
 const paypal = require('paypal-rest-sdk');
 
+
 router.get('/', function (req, res, next) {
   console.log('ok');
   return res.json('ok');
@@ -290,5 +291,7 @@ function categorizeQueryString(queryObj) {
   }
   return { query, order }
 }
+
+
 
 module.exports = router;

@@ -8,6 +8,56 @@ const { Op } = require('sequelize');
 const { Payment, User, Address, GachaUser, sequelize } = require("../models");
 const TypedError = require('../modules/ErrorHandler')
 
+const stripe = require('stripe')('sk_test_51QMoCoK7S11jMD7Jcv5KDq2rBGEahS3pD3Di2zjHHsIrIFfW6xHhtLGWNqkobJfAGsBuhsWF3xK3jqlEk3xlbjfi00s7rqbNMp');
+
+router.get('/payment', async (req, res) => {
+  console.log('ddddd');
+  let Params = req.query;
+  // paymentMethodId,
+  // amount
+  // user_id
+  let user = await User.findOne({where: {id: userId}});
+  const customer = await stripe.customers.create({
+    email: user.email,
+    name: user.first_name,
+  });
+
+  const { amount, userId, paymentMethodId, cardType } = Params;
+
+  console.log('paymentMethodId', paymentMethodId);
+  let name = 'name';
+  if (cardType == 'card') {
+
+    try {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'jpy',
+        payment_method: paymentMethodId,
+        confirm: true,
+        confirmation_method: 'manual',
+        customer: customer.id,
+        return_url: 'https://gacha-server-2412-enpq.onrender.com/su'
+        // 'payment_method_types' => ['card'],
+        // 'customer' => $customer->id,
+        // 'amount' => $cost, 
+        // 'currency' => 'jpy',
+        // 'payment_method' => $paymentMethodId,
+        // 'confirmation_method' => 'manual',
+        // 'confirm' => true,
+      });
+
+      // res.status(201).json(paymentIntent);
+
+
+      res.send({
+        success: true,
+        paymentIntent,
+      });
+    } catch (error) {
+      res.status(500).send({ error: error.message });
+    }
+  }
+});
 
 // POST /signin
 router.post('/register', async function (req, res, next) {
@@ -319,7 +369,7 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
         user_id: user.id,
         amount: parseInt(amount),
         status: "deposit"
-       }).then(async payment => {
+      }).then(async payment => {
         await user.update(
           {
             point: parseInt(user.point) + parseInt(amount),
@@ -332,13 +382,13 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
             throw err;
             return next(err);
           })
-        })
-      .catch(err => {
-        console.error(err);
-        throw err;
-        return next(err);
-      });
-      
+      })
+        .catch(err => {
+          console.error(err);
+          throw err;
+          return next(err);
+        });
+
     })
     .catch(err => {
       throw err;
@@ -348,7 +398,7 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
 
 router.get('/payments/all', ensureAuthenticated, async function (req, res, next) {
   console.log("here");
-  await Payment.findAll({where: { status:"deposit" }})
+  await Payment.findAll({ where: { status: "deposit" } })
     .then(payments => {
       res.status(200).json(payments);
     })
@@ -356,7 +406,7 @@ router.get('/payments/all', ensureAuthenticated, async function (req, res, next)
       console.error(err);
       throw err;
       return next(err);
-    }); 
+    });
 })
 
 router.get('/:userId/payments', ensureAuthenticated, async function (req, res, next) {
@@ -367,7 +417,7 @@ router.get('/:userId/payments', ensureAuthenticated, async function (req, res, n
     }
   })
     .then(async (user) => {
-      await Payment.findAll({where: { user_id: userId, status:"deposit" }})
+      await Payment.findAll({ where: { user_id: userId, status: "deposit" } })
         .then(payments => {
           res.status(200).json(payments);
         })
@@ -375,7 +425,7 @@ router.get('/:userId/payments', ensureAuthenticated, async function (req, res, n
           console.error(err);
           throw err;
           return next(err);
-        });      
+        });
     })
     .catch(err => {
       throw err;

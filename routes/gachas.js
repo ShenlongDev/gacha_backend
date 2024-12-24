@@ -252,14 +252,6 @@ router.get('/:gachaId/item', async function (req, res, next) {
   const gachaId = req.params.gachaId;
   await Gacha.findOne({ where: { id: gachaId } })
     .then(async gacha => {
-      badge_ids = gacha.badges.split(',');
-      gacha.badges = await Badge.findAll({
-        where: {
-          id: {
-            [Op.in]: badge_ids
-          }
-        }
-      });
       res.status(201).json(gacha);
     })
     .catch(err => {
