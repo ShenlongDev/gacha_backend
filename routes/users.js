@@ -11,12 +11,10 @@ const TypedError = require('../modules/ErrorHandler')
 const stripe = require('stripe')('sk_test_51QMoCoK7S11jMD7Jcv5KDq2rBGEahS3pD3Di2zjHHsIrIFfW6xHhtLGWNqkobJfAGsBuhsWF3xK3jqlEk3xlbjfi00s7rqbNMp');
 
 router.get('/payment', async (req, res) => {
-  console.log('ddddd');
+
   let Params = req.query;
-  // paymentMethodId,
-  // amount
-  // user_id
-  let user = await User.findOne({where: {id: userId}});
+
+  let user = await User.findOne({ where: { id: userId } });
   const customer = await stripe.customers.create({
     email: user.email,
     name: user.first_name,
@@ -37,24 +35,22 @@ router.get('/payment', async (req, res) => {
         confirmation_method: 'manual',
         customer: customer.id,
         return_url: 'https://gacha-server-2412-enpq.onrender.com/su'
-        // 'payment_method_types' => ['card'],
-        // 'customer' => $customer->id,
-        // 'amount' => $cost, 
-        // 'currency' => 'jpy',
-        // 'payment_method' => $paymentMethodId,
-        // 'confirmation_method' => 'manual',
-        // 'confirm' => true,
       });
 
-      // res.status(201).json(paymentIntent);
+      Payment.create({ user_id: userId, amount: amount, status: '' })
+        .then(user => {
 
+        });
 
       res.send({
         success: true,
         paymentIntent,
       });
+
     } catch (error) {
+
       res.status(500).send({ error: error.message });
+
     }
   }
 });
