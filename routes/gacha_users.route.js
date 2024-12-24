@@ -4,12 +4,9 @@ const ensureAuthenticated = require('../modules/ensureAuthenticated');
 const { GachaUser, sequelize } = require("../models");
 
 // GET /gifts
-// router.get('/', ensureAuthenticated, async function (req, res, next) {
-router.get('/', async function (req, res, next) {
-  console.log('get all gacha users!');
+router.get('/', ensureAuthenticated, async function (req, res, next) {
   await GachaUser.findAll()
     .then(gachaUsers => {
-      console.log(gachaUsers);
       res.status(200).json(gachaUsers);
     })
     .catch(err => {

@@ -7,7 +7,7 @@ const config = require('../configs/jwt-config')
 const ensureAuthenticated = require('../modules/ensureAuthenticated')
 const GachaJS = require('../utils/gacha');
 const { Op } = require('sequelize');
-const { Gacha, User, GachaUser, GachaCategory, Address } = require("../models");
+const { Gacha, User, GachaUser, GachaCategory, Address, Badge } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
@@ -251,7 +251,15 @@ router.get('/category/:category', async function (req, res, next) {
 router.get('/:gachaId/item', async function (req, res, next) {
   const gachaId = req.params.gachaId;
   await Gacha.findOne({ where: { id: gachaId } })
-    .then(gacha => {
+    .then(async gacha => {
+      badge_ids = gacha.badges.split(',');
+      gacha.badges = await Badge.findAll({
+        where: {
+          id: {
+            [Op.in]: badge_ids
+          }
+        }
+      });
       res.status(201).json(gacha);
     })
     .catch(err => {
@@ -636,5 +644,17 @@ router.get('/gifts/:userId/remain', ensureAuthenticated, async function (req, re
       return next(err);
     })
 })
+
+// get badge
+router.get('/badge', ensureAuthenticated, async function (req, res, next) {
+  await Badge.findAll()
+    .then(badges => {
+      res.status(200).json(badges);
+    })
+    .catch(err => {
+      return next(err);
+    })
+})
+
 
 module.exports = router;
