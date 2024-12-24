@@ -11,19 +11,7 @@ module.exports = (sequelize, Sequelize) => {
     gift_point: {
       type: Sequelize.INTEGER
     },
-    gift_asin: {
-      type: Sequelize.STRING
-    },
-    gift_name: {
-      type: Sequelize.STRING
-    },
-    gift_price: {
-      type: Sequelize.INTEGER
-    },
-    gift_url: {
-      type: Sequelize.STRING
-    },
-    gift_img: {
+    gift_info: {
       type: Sequelize.STRING
     },
     status: {

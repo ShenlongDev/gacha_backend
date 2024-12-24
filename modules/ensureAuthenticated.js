@@ -6,7 +6,7 @@ function ensureAuthenticated(req, res, next) {
   if (req.headers['x-access-token'] || req.headers['authorization']) {
     token = req.headers['x-access-token'] || req.headers['authorization']
   }
-  //OAuth 2.0 framework 'bearer' token type
+  // OAuth 2.0 framework 'bearer' token type
   if (token.startsWith('Bearer ')) {
     token = token.slice(7, token.length)
   }
@@ -18,7 +18,7 @@ function ensureAuthenticated(req, res, next) {
         })
         return next(err)
       } else {
-        //bind on request
+        // bind on request
         req.decoded = decoded;
         next()
       }

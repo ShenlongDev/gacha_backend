@@ -5,6 +5,9 @@ module.exports = (sequelize, Sequelize) => {
     },
     color: {
       type: Sequelize.STRING,
+    },
+    font_color: {
+      type: Sequelize.STRING,
     }
   },
     {

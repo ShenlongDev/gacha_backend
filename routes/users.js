@@ -135,6 +135,13 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
     })
 })
 
+// router.get('/user_info', ensureAuthenticated, async function (req, res, next) {
+//   // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QxMjNAZ21haWwuY29tIiwiaWF0IjoxNzM1MDYzNjU5LCJleHAiOjE3MzUwNjcyNTl9.wgYoAtj-AwAG2HPx0pulcbyOGtx3vlpGmw9ws-UD9sI"
+//   const user_info = req.decoded;
+//   console.log(user_info);
+//   res.status(201).json(user_info);
+// })
+
 router.get('/:userId', ensureAuthenticated, async function (req, res, next) {
   const userId = req.params.userId;
   await User.findOne({ where: { id: userId } })
