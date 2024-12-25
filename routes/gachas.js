@@ -94,9 +94,18 @@ class getGiftCards {
 
 //GET CATEGORIES/
 router.get('/categories', async function (req, res, next) {
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
   await GachaCategory.findAll()
     .then(categories => {
-      res.status(201).json(categories);
+      res.status(201).json({
+        data: categories.slice(startIndex, endIndex),
+        currentPage: parseInt(pageNumber),
+        totalPages: Math.ceil(categories.length / pageSize),
+        totalRecords: categories.length
+      });
     })
     .catch(err => {
       return next(err);
@@ -146,6 +155,10 @@ router.post('/categories/add', ensureAuthenticated, async function (req, res, ne
 // Delete category
 router.get('/categories/:categoryId/delete', ensureAuthenticated, async function (req, res, next) {
   let categoryId = req.params.categoryId;
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
   await GachaCategory.destroy({
     where: {
       id: categoryId
@@ -154,7 +167,12 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
     .then(async (category) => {
       await GachaCategory.findAll()
         .then(categories => {
-          res.status(201).json(categories);
+          res.status(201).json({
+            data: categories.slice(startIndex, endIndex),
+            currentPage: parseInt(pageNumber),
+            totalPages: Math.ceil(categories.length / pageSize),
+            totalRecords: categories.length
+          });
         })
     })
     .catch(err => {

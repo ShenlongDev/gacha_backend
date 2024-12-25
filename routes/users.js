@@ -188,9 +188,18 @@ router.post('/login', async function (req, res, next) {
 
 // GET /
 router.get('/', ensureAuthenticated, async function (req, res, next) {
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
   await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
     .then(users => {
-      res.status(201).json(users);
+      res.status(201).json({
+        data: users.slice(startIndex, endIndex),
+        currentPage: parseInt(pageNumber),
+        totalPages: Math.ceil(users.length / pageSize),
+        totalRecords: users.length
+      });
     })
     .catch(err => {
       return next(err);
@@ -251,6 +260,10 @@ router.post('/:userId/edit', ensureAuthenticated, async function (req, res, next
 // Delete user
 router.get('/:userId/delete', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId;
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
   await User.destroy({
     where: {
       id: userId
@@ -259,7 +272,12 @@ router.get('/:userId/delete', ensureAuthenticated, async function (req, res, nex
     .then(async (user) => {
       await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
         .then(users => {
-          res.status(201).json(users);
+          res.status(201).json({
+            data: users.slice(startIndex, endIndex),
+            currentPage: parseInt(pageNumber),
+            totalPages: Math.ceil(users.length / pageSize),
+            totalRecords: users.length
+          });
         })
     })
     .catch(err => {
