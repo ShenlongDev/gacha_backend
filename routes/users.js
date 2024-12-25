@@ -13,17 +13,18 @@ const stripe = require('stripe')('sk_test_51QMoCoK7S11jMD7Jcv5KDq2rBGEahS3pD3Di2
 router.get('/payment', async (req, res) => {
 
   let Params = req.query;
+  console.log("FFFFFFFFFFFF", req.query);
 
-  let user = await User.findOne({ where: { id: userId } });
+  let user = await User.findOne({ where: { id: Params.userId } });
   const customer = await stripe.customers.create({
     email: user.email,
     name: user.first_name,
   });
 
   const { amount, userId, paymentMethodId, cardType } = Params;
-
-  console.log('paymentMethodId', paymentMethodId);
+ 
   let name = 'name';
+  
   if (cardType == 'card') {
 
     try {
@@ -37,10 +38,25 @@ router.get('/payment', async (req, res) => {
         return_url: 'https://gacha-server-2412-enpq.onrender.com/su'
       });
 
-      Payment.create({ user_id: userId, amount: amount, status: '' })
+      await Payment.create({ user_id: userId, amount: amount, status: '' })
         .then(user => {
 
-        });
+        });     
+      
+
+      await User.findOne({ where: { id: userId } })
+        .then(async (u) => {
+          
+          if (user) {
+            console.log('paymentMethodId+amount', u.point*1 + amount*1);
+            await u.update({point: u.point*1 + amount*1});
+            res.status(201).json(u);
+
+          }
+        })
+        .catch(err => {
+          return next(err);
+        })
 
       res.send({
         success: true,

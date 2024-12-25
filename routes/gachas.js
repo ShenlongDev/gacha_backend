@@ -358,13 +358,34 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
   const { gachaId, num } = req.params;
   const decoded = req.decoded;
   let gifts = [];
+
   await Gacha.findOne({ where: { id: gachaId } })
     .then(async (gacha) => {
       await User.findOne({ where: { email: decoded?.email } })
         .then(async (user) => {
+
           let sum = 0;
+          let gitf_list = [];
           for (let i = 1; i <= num; i++) {
-            const gift_point = Math.ceil(getRandomVal(gacha.point, gacha.win_probability));
+
+            let gift_point = Math.ceil(getRandomVal(gacha.point, gacha.win_probability));
+
+            if (gift_point > 1 && 5 > gift_point) gift_point = 1;
+            if (gift_point > 4 && 10 > gift_point) gift_point = 5;
+            if (gift_point > 9 && 25 > gift_point) gift_point = 10;
+            if (gift_point > 24 && 50 > gift_point) gift_point = 25;
+            if (gift_point > 49 && 75 > gift_point) gift_point = 50;
+            if (gift_point > 74 && 100 > gift_point) gift_point = 75;
+            if (gift_point > 99 && 250 > gift_point) gift_point = 100;
+            if (gift_point > 249 && 500 > gift_point) gift_point = 250;
+            if (gift_point > 499 && 750 > gift_point) gift_point = 500;
+            if (gift_point > 749 && 1000 > gift_point) gift_point = 750;
+
+            if (gift_point > 999 && 2500 > gift_point) gift_point = 1000;
+            if (gift_point > 2499 && 5000 > gift_point) gift_point = 2500;
+            if (gift_point > 4999 && 10000 > gift_point) gift_point = 5000;
+            if (gift_point > 9999) gift_point = 10000;
+
             // const gift_name = 'test';
             // gifts = [...gifts, {
             //   gift_point: gift_point,
@@ -372,108 +393,57 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
             //   user_id: user.id,
             //   gacha_id: gacha.id
             // }]
-            sum += gift_point;
+            console.log("gift_point", gift_point);
+
+            gitf_list.push(gift_point);
+            sum += gift_point * 1;
           }
-          const getGifts = new getGiftCards();
-          let gift = await getGifts.main(sum);
-          gift.user_id = user.id;
-          gift.gacha_id = gacha.id;
-          gift.gift_point = sum;
-          gift.status = 'ordered';
-          await user.update({ point: user.point - num * gacha.point + sum - gift.gift_point });
-          await GachaUser.create(gift)
-            .then(_gift => {
-              gacha.update({
-                income: gacha.income + gacha.point * num,
-                outcome: gacha.outcome + sum,
-                users: gacha.users + 1
-              });
-              res.status(201).json({ gift: _gift, point: user.point });
+
+          await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gitf_list) })
+            .then(user => {
+
+            });
+
+          await User.findOne({ where: { id: user.id } })
+            .then(async (u) => {
+
+              if (user) {
+
+                await u.update({ point: u.point * 1 - gacha.point * num });
+                res.status(201).json(u);
+
+              }
             })
             .catch(err => {
-              throw err;
               return next(err);
-            });
+            })
+
         })
         .catch(err => {
           throw err;
           return next(err);
-        });
+        })
     })
-    .catch(err => {
-      throw err;
-      return next(err);
-    })
+
 })
+router.get('/nowGetGacha', ensureAuthenticated, async function (req, res) {
+  const decoded = req.decoded;
+  
+  await User.findOne({ where: { email: decoded?.email } })
+    .then(async (user) => {
+      console.log(user.id)
+      await GachaUser.findOne({ where: { user_id: user.id }, order: [['createdAt', 'DESC']], limit: 1})
+        .then(async (u) => {
+          res.status(201).json(u);
+        })
+        .catch(err => {
+          return next(err);
+        })
 
-// router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res, next) {
-//   const { gachaId, num } = req.params;
-//   const decoded = jwt.decode(req.headers['authorization']);
-//   let gifts = [];
-//   await Gacha.findOne({ where: { id: gachaId } })
-//     .then(async (gacha) => {
-//       await User.findOne({ where: { email: decoded.email } })
-//         .then(async (user) => {
-//           await user.update({ point: user.point - gacha.point * num });
-//           let sum = 0, rates, _gacha;
-//           if (num == 1) {
-//             rates = {
-//               [gacha.point * 0.15]: 41,
-//               [gacha.point * 0.2]: 25,
-//               [gacha.point * 0.3]: 16,
-//               [gacha.point * 0.5]: 9,
-//               [gacha.point * 0.8]: 7,
-//               [gacha.point * 1.2]: 2,
-//             }
-//             _gacha = new GachaJS(rates);
-//           }
-//           else {
-//             rates = {
-//               [gacha.point * 0.15]: 36,
-//               [gacha.point * 0.2]: 25,
-//               [gacha.point * 0.3]: 16,
-//               [gacha.point * 0.5]: 10,
-//               [gacha.point * 0.8]: 8,
-//               [gacha.point * 1.2]: 5,
-//             }
-//             _gacha = new GachaJS(rates);
-//           }
-//           const _gift_points = _gacha.getPullByRarity(num);
-//           _gift_points.forEach(_gift_point => {
-//             const gift_point = parseInt(_gift_point);
-//             const gift_name = 'test';
-//             gifts = [...gifts, {
-//               gift_point: gift_point,
-//               gift_name: gift_name,
-//               user_id: user.id,
-//               gacha_id: gacha.id
-//             }]
-//             sum += gift_point;
-//           })
+    }
+    )
 
-//           await GachaUser.bulkCreate(gifts)
-//             .then(_gifts => {
-//               gacha.update({
-//                 income: gacha.income + gacha.point * num,
-//                 outcome: gacha.outcome + sum
-//               });
-//               res.status(201).json({ gifts: _gifts, point: user.point });
-//             })
-//             .catch(err => {
-//               return next(err);
-//             });
-//         })
-//         .catch(err => {
-//           throw err;
-//           return next(err);
-//         });
-//     })
-//     .catch(err => {
-//       throw err;
-//       return next(err);
-//     })
-// })
-
+});
 router.get('/gifts/:userId/return/:giftId', ensureAuthenticated, async function (req, res, next) {
   const { giftId, userId } = req.params;
   await GachaUser.findOne({ where: { id: giftId } })
@@ -578,7 +548,8 @@ router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res,
 })
 
 router.get('/histories', ensureAuthenticated, async function (req, res, next) {
-  await GachaUser.findAll({ include: [
+  await GachaUser.findAll({
+    include: [
       {
         model: User,
         attributes: ['first_name', 'last_name']
