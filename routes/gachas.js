@@ -93,18 +93,9 @@ class getGiftCards {
 }
 
 router.get('/categories', async function (req, res, next) {
-  const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
-  const startIndex = (pageNumber - 1) * pageSize;
-  const endIndex = pageNumber * pageSize;
   await GachaCategory.findAll()
     .then(categories => {
-      res.status(201).json({
-        data: categories.slice(startIndex, endIndex),
-        currentPage: parseInt(pageNumber),
-        totalPages: Math.ceil(categories.length / pageSize),
-        totalRecords: categories.length
-      });
+      res.status(201).json(categories);
     })
     .catch(err => {
       return next(err);
@@ -152,10 +143,6 @@ router.post('/categories/add', ensureAuthenticated, async function (req, res, ne
 
 router.get('/categories/:categoryId/delete', ensureAuthenticated, async function (req, res, next) {
   let categoryId = req.params.categoryId;
-  const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
-  const startIndex = (pageNumber - 1) * pageSize;
-  const endIndex = pageNumber * pageSize;
   await GachaCategory.destroy({
     where: {
       id: categoryId
@@ -164,12 +151,7 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
     .then(async (category) => {
       await GachaCategory.findAll()
         .then(categories => {
-          res.status(201).json({
-            data: categories.slice(startIndex, endIndex),
-            currentPage: parseInt(pageNumber),
-            totalPages: Math.ceil(categories.length / pageSize),
-            totalRecords: categories.length
-          });
+          res.status(201).json(categories);
         })
     })
     .catch(err => {
@@ -531,8 +513,9 @@ router.get('/gifts/:userId/deliver/:giftId', ensureAuthenticated, async function
     })
 })
 
-router.get('/:userId/histories', ensureAuthenticated, async function (req, res, next) {
-  const { userId } = req.params;
+router.get('/:userId/histories/:status', ensureAuthenticated, async function (req, res, next) {
+  const { userId, status } = req.params;
+  
   await GachaUser.findAll({
     where: { user_id: userId },
     include: [
@@ -542,7 +525,8 @@ router.get('/:userId/histories', ensureAuthenticated, async function (req, res, 
       },
       {
         model: GachaScore,
-        attributes: ['score', 'status']
+        attributes: ['id', 'score', 'status'],
+        ...(status !== 'all' && { where: { status } })
       }
     ]
   })

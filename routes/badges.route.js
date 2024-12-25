@@ -5,18 +5,9 @@ const { Badge, sequelize } = require("../models");
 
 // GET /badges
 router.get('/', ensureAuthenticated, async function (req, res, next) {
-  const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
-  const startIndex = (pageNumber - 1) * pageSize;
-  const endIndex = pageNumber * pageSize;
   await Badge.findAll()
     .then(badges => {
-      res.status(201).json({
-        data: badges.slice(startIndex, endIndex),
-        currentPage: parseInt(pageNumber),
-        totalPages: Math.ceil(badges.length / pageSize),
-        totalRecords: badges.length
-      });
+      res.status(201).json(badges);
     })
     .catch(err => {
       return next(err);
@@ -86,10 +77,6 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
 
 router.get('/:badgeId/delete', ensureAuthenticated, async function (req, res, next) {
   let badgeId = req.params.badgeId;
-  const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
-  const startIndex = (pageNumber - 1) * pageSize;
-  const endIndex = pageNumber * pageSize;
   await Badge.destroy({
     where: {
       id: badgeId
@@ -98,12 +85,7 @@ router.get('/:badgeId/delete', ensureAuthenticated, async function (req, res, ne
     .then(async () => {
       await Badge.findAll()
         .then(badges => {
-          res.status(201).json({
-            data: badges.slice(startIndex, endIndex),
-            currentPage: parseInt(pageNumber),
-            totalPages: Math.ceil(badges.length / pageSize),
-            totalRecords: badges.length
-          });
+          res.status(201).json(badges);
         })
     })
     .catch(err => {
