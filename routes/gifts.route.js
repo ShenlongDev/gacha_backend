@@ -20,10 +20,18 @@ const upload = multer({ storage: storage });
 
 // GET /gifts
 router.get('/', ensureAuthenticated, async function (req, res, next) {
-  console.log(req.params)
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
   await Gift.findAll()
     .then(gifts => {
-      res.status(200).json(gifts);
+      res.status(201).json({
+        data: gifts.slice(startIndex, endIndex),
+        currentPage: parseInt(pageNumber),
+        totalPages: Math.ceil(gifts.length / pageSize),
+        totalRecords: gifts.length
+      });
     })
     .catch(err => {
       return next(err);
@@ -102,5 +110,32 @@ router.post('/:giftId/image', ensureAuthenticated, upload.single('image'), async
       return next(err);
     })
 });
+
+router.get('/:giftId/delete', ensureAuthenticated, async function (req, res, next) {
+  let giftId = req.params.giftId;
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
+  await Gift.destroy({
+    where: {
+      id: giftId
+    }
+  })
+    .then(async () => {
+      await Gift.findAll()
+        .then(gifts => {
+          res.status(201).json({
+            data: gifts.slice(startIndex, endIndex),
+            currentPage: parseInt(pageNumber),
+            totalPages: Math.ceil(gifts.length / pageSize),
+            totalRecords: gifts.length
+          });
+        })
+    })
+    .catch(err => {
+      return next(err);
+    })
+})
 
 module.exports = router;
