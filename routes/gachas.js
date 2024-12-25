@@ -400,23 +400,25 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
           }
 
           await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gitf_list) })
-            .then(user => {
+            .then(async user => {
+
+              await User.findOne({ where: { id: user.id } })
+                .then(async (u) => {
+
+                  if (user) {
+
+                    await u.update({ point: u.point * 1 - gacha.point * num });
+                    res.status(201).json(u);
+
+                  }
+                })
+                .catch(err => {
+                  return next(err);
+                })
 
             });
 
-          await User.findOne({ where: { id: user.id } })
-            .then(async (u) => {
 
-              if (user) {
-
-                await u.update({ point: u.point * 1 - gacha.point * num });
-                res.status(201).json(u);
-
-              }
-            })
-            .catch(err => {
-              return next(err);
-            })
 
         })
         .catch(err => {
@@ -428,11 +430,11 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 })
 router.get('/nowGetGacha', ensureAuthenticated, async function (req, res) {
   const decoded = req.decoded;
-  
+
   await User.findOne({ where: { email: decoded?.email } })
     .then(async (user) => {
       console.log(user.id)
-      await GachaUser.findOne({ where: { user_id: user.id }, order: [['createdAt', 'DESC']], limit: 1})
+      await GachaUser.findOne({ where: { user_id: user.id }, order: [['createdAt', 'DESC']], limit: 1 })
         .then(async (u) => {
           res.status(201).json(u);
         })

@@ -13,7 +13,6 @@ const stripe = require('stripe')('sk_test_51QMoCoK7S11jMD7Jcv5KDq2rBGEahS3pD3Di2
 router.get('/payment', async (req, res) => {
 
   let Params = req.query;
-  console.log("FFFFFFFFFFFF", req.query);
 
   let user = await User.findOne({ where: { id: Params.userId } });
   const customer = await stripe.customers.create({
@@ -22,9 +21,8 @@ router.get('/payment', async (req, res) => {
   });
 
   const { amount, userId, paymentMethodId, cardType } = Params;
- 
-  let name = 'name';
-  
+
+
   if (cardType == 'card') {
 
     try {
@@ -36,35 +34,25 @@ router.get('/payment', async (req, res) => {
         confirmation_method: 'manual',
         customer: customer.id,
         return_url: 'https://gacha-server-2412-enpq.onrender.com/su'
-      });
-
-      await Payment.create({ user_id: userId, amount: amount, status: '' })
-        .then(user => {
-
-        });     
-      
-
-      await User.findOne({ where: { id: userId } })
-        .then(async (u) => {
-          
-          if (user) {
-            console.log('paymentMethodId+amount', u.point*1 + amount*1);
-            await u.update({point: u.point*1 + amount*1});
-            res.status(201).json(u);
-
-          }
-        })
+      }).then(async () => {
+        await Payment.create({ user_id: userId, amount: amount, status: '' })
+          .then(async payment => {
+            if (user) {
+              await user.update({ point: user.point * 1 + amount * 1 });
+              console.log('paymentMethodId+amount', user.point);
+              res.status(201).json({ point: user.point });
+            }
+          });
+      })
         .catch(err => {
+          console.log("payment error", err)
           return next(err);
-        })
+        });
 
-      res.send({
-        success: true,
-        paymentIntent,
-      });
+
 
     } catch (error) {
-
+      console.log("catch error", error)
       res.status(500).send({ error: error.message });
 
     }
