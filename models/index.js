@@ -14,6 +14,7 @@ db.Address = require("./address.model.js")(sequelize, Sequelize);
 db.Badge = require("./badge.model.js")(sequelize, Sequelize);
 db.Gift = require("./gift.model.js")(sequelize, Sequelize);
 db.Payment = require("./payment.model.js")(sequelize, Sequelize);
+db.GachaScore = require("./gacha_score.model.js")(sequelize, Sequelize);
 
 db.GachaCategory.hasMany(db.Gacha, { foreignKey: 'category_id' });
 db.Gacha.belongsTo(db.GachaCategory, { foreignKey: 'category_id' });

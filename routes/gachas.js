@@ -7,12 +7,13 @@ const config = require('../configs/jwt-config')
 const ensureAuthenticated = require('../modules/ensureAuthenticated')
 const GachaJS = require('../utils/gacha');
 const { Op } = require('sequelize');
-const { Gacha, User, GachaUser, GachaCategory, Address, Badge } = require("../models");
+const { Gacha, User, GachaUser, GachaCategory, Address, Badge, GachaScore } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
 
-const TypedError = require('../modules/ErrorHandler')
+const TypedError = require('../modules/ErrorHandler');
+const { totalmem } = require('os');
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
@@ -383,7 +384,7 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
         .then(async (user) => {
 
           let sum = 0;
-          let gitf_list = [];
+          let gift_list = [];
           for (let i = 1; i <= num; i++) {
 
             let gift_point = Math.ceil(getRandomVal(gacha.point, gacha.win_probability));
@@ -413,13 +414,27 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
             // }]
             console.log("gift_point", gift_point);
 
-            gitf_list.push(gift_point);
+            gift_list.push(gift_point);
             sum += gift_point * 1;
           }
 
-          await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gitf_list) })
-            .then(user => {
+          await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gift_list) })
+            .then(async gachaUser => {
 
+              // insertQuery = 'INSERT INTO "GachaScores" (user_id, gacha_id, score) VALUES';
+              // for (let i = 0; i < num; i++) {
+              //   insertQuery += `(${gachaUser.user_id}, ${gachaUser.gacha_id}, ${gift_list[i]}),`;
+              // }
+              // insertQuery = insertQuery.slice(0, -1);
+
+              // await sequelize.query(insertQuery);
+              const scores = gift_list.map(score => ({
+                user_id: gachaUser.user_id,
+                gacha_id: gachaUser.gacha_id,
+                score: score
+              }));
+            
+              await GachaScore.bulkCreate(scores);
             });
 
           await User.findOne({ where: { id: user.id } })
@@ -636,5 +651,17 @@ router.get('/badge', async function (req, res, next) {
       return next(err);
     })
 })
+
+// router.get('/score', async function (req, res, next) {
+//   let data = req.query;
+//   await GachaScore.create(data)
+//     .then(gachaScore => {
+//       res.status(201).json(gachaScore);
+//     })
+//     .catch(err => {
+//       throw err;
+//       return next(err);
+//     })
+// })
 
 module.exports = router;
