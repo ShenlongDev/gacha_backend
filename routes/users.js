@@ -59,7 +59,6 @@ router.get('/payment', async (req, res) => {
   }
 });
 
-// POST /signin
 router.post('/register', async function (req, res, next) {
   let _user = req.body;
   req.checkBody('first_name', 'FirstName is required').notEmpty();
@@ -129,7 +128,6 @@ router.post('/register', async function (req, res, next) {
     })
 });
 
-// POST /login
 router.post('/login', async function (req, res, next) {
   console.log(req.body);
   const { email, password } = req.body || {};
@@ -174,10 +172,9 @@ router.post('/login', async function (req, res, next) {
     })
 })
 
-// GET /
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
@@ -193,13 +190,6 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
       return next(err);
     })
 })
-
-// router.get('/user_info', ensureAuthenticated, async function (req, res, next) {
-//   // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QxMjNAZ21haWwuY29tIiwiaWF0IjoxNzM1MDYzNjU5LCJleHAiOjE3MzUwNjcyNTl9.wgYoAtj-AwAG2HPx0pulcbyOGtx3vlpGmw9ws-UD9sI"
-//   const user_info = req.decoded;
-//   console.log(user_info);
-//   res.status(201).json(user_info);
-// })
 
 router.get('/:userId', ensureAuthenticated, async function (req, res, next) {
   const userId = req.params.userId;
@@ -245,11 +235,10 @@ router.post('/:userId/edit', ensureAuthenticated, async function (req, res, next
     })
 })
 
-// Delete user
 router.get('/:userId/delete', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await User.destroy({
@@ -415,8 +404,8 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
 })
 
 router.get('/payments/all', ensureAuthenticated, async function (req, res, next) {
-  console.log("here");
-  await Payment.findAll({ where: { status: "deposit" } })
+  // await Payment.findAll({ where: { status: "deposit" } })
+  await Payment.findAll()
     .then(payments => {
       res.status(200).json(payments);
     })
@@ -435,7 +424,8 @@ router.get('/:userId/payments', ensureAuthenticated, async function (req, res, n
     }
   })
     .then(async (user) => {
-      await Payment.findAll({ where: { user_id: userId, status: "deposit" } })
+      // await Payment.findAll({ where: { user_id: userId, status: "deposit" } })
+      await Payment.findAll()
         .then(payments => {
           res.status(200).json(payments);
         })

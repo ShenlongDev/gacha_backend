@@ -9,6 +9,10 @@ module.exports = (sequelize, Sequelize) => {
 		score: {
 			type: Sequelize.INTEGER,
 		},
+		status: {
+			type: Sequelize.ENUM(['ordered', 'delivering', 'completed', 'returned']),
+			defaultValue: 'ordered'
+		},
 	},
 		{
 			timestamps: false

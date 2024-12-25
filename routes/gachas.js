@@ -24,7 +24,6 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
-// const User = db.User;
 
 const getRandomVal = (point, prob) => {
   return Math.random() * (point * prob - point * 0.1) + point * 0.1;
@@ -93,10 +92,9 @@ class getGiftCards {
   }
 }
 
-//GET CATEGORIES/
 router.get('/categories', async function (req, res, next) {
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await GachaCategory.findAll()
@@ -113,7 +111,6 @@ router.get('/categories', async function (req, res, next) {
     })
 })
 
-// POST category
 router.post('/categories/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   if (data.name != '') {
@@ -153,11 +150,10 @@ router.post('/categories/add', ensureAuthenticated, async function (req, res, ne
   }
 })
 
-// Delete category
 router.get('/categories/:categoryId/delete', ensureAuthenticated, async function (req, res, next) {
   let categoryId = req.params.categoryId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await GachaCategory.destroy({
@@ -181,11 +177,10 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
     })
 })
 
-// GET Gachas/
 router.get('/category/:category', async function (req, res, next) {
   const category = req.params.category;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
 
@@ -266,7 +261,6 @@ router.get('/category/:category', async function (req, res, next) {
   }
 })
 
-// GET Gacha
 router.get('/:gachaId/item', async function (req, res, next) {
   const gachaId = req.params.gachaId;
   await Gacha.findOne({ where: { id: gachaId } })
@@ -348,7 +342,7 @@ router.post('/:gachaId/image', ensureAuthenticated, upload.single('image'), asyn
 router.get('/:gachaId/delete', ensureAuthenticated, async function (req, res, next) {
   let gachaId = req.params.gachaId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await Gacha.destroy({
@@ -372,7 +366,6 @@ router.get('/:gachaId/delete', ensureAuthenticated, async function (req, res, ne
     })
 })
 
-// gift card generating
 router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res, next) {
   const { gachaId, num } = req.params;
   const decoded = req.decoded;
@@ -405,32 +398,20 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
             if (gift_point > 4999 && 10000 > gift_point) gift_point = 5000;
             if (gift_point > 9999) gift_point = 10000;
 
-            // const gift_name = 'test';
-            // gifts = [...gifts, {
-            //   gift_point: gift_point,
-            //   gift_name: gift_name,
-            //   user_id: user.id,
-            //   gacha_id: gacha.id
-            // }]
             console.log("gift_point", gift_point);
 
             gift_list.push(gift_point);
             sum += gift_point * 1;
           }
 
-          await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gift_list) })
+          // await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gift_list) })
+          await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: num })
             .then(async gachaUser => {
 
-              // insertQuery = 'INSERT INTO "GachaScores" (user_id, gacha_id, score) VALUES';
-              // for (let i = 0; i < num; i++) {
-              //   insertQuery += `(${gachaUser.user_id}, ${gachaUser.gacha_id}, ${gift_list[i]}),`;
-              // }
-              // insertQuery = insertQuery.slice(0, -1);
-
-              // await sequelize.query(insertQuery);
               const scores = gift_list.map(score => ({
                 user_id: gachaUser.user_id,
                 gacha_id: gachaUser.gacha_id,
+                gacha_user_id: gachaUser.id,
                 score: score
               }));
             
@@ -460,7 +441,7 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
           throw err;
           return next(err);
         })
-    })
+})
 
 router.get('/nowGetGacha', ensureAuthenticated, async function (req, res) {
   const decoded = req.decoded;
@@ -480,6 +461,7 @@ router.get('/nowGetGacha', ensureAuthenticated, async function (req, res) {
     )
 
 });
+
 router.get('/gifts/:userId/return/:giftId', ensureAuthenticated, async function (req, res, next) {
   const { giftId, userId } = req.params;
   await GachaUser.findOne({ where: { id: giftId } })
@@ -552,10 +534,17 @@ router.get('/gifts/:userId/deliver/:giftId', ensureAuthenticated, async function
 router.get('/:userId/histories', ensureAuthenticated, async function (req, res, next) {
   const { userId } = req.params;
   await GachaUser.findAll({
-    where: { user_id: userId }, include: [{
-      model: Gacha,
-      attributes: ['name']
-    }]
+    where: { user_id: userId },
+    include: [
+      {
+        model: Gacha,
+        attributes: ['name']
+      },
+      {
+        model: GachaScore,
+        attributes: ['score', 'status']
+      }
+    ]
   })
     .then(async (gifts) => {
       res.status(201).json(gifts);
@@ -568,14 +557,24 @@ router.get('/:userId/histories', ensureAuthenticated, async function (req, res, 
 
 router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res, next) {
   const { gachaId } = req.params;
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
+
   await GachaUser.findAll({
     where: { gacha_id: gachaId }, include: [{
       model: User,
       attributes: ['first_name', 'last_name']
     }]
   })
-    .then(async (gifts) => {
-      res.status(201).json(gifts);
+    .then(async (gachaUsers) => {
+      res.status(201).json({
+        data: gachaUsers.slice(startIndex, endIndex),
+        currentPage: parseInt(pageNumber),
+        totalPages: Math.ceil(gachaUsers.length / pageSize),
+        totalRecords: gachaUsers.length
+      });
     })
     .catch(err => {
       throw err;
@@ -644,7 +643,6 @@ router.get('/gifts/:userId/remain', ensureAuthenticated, async function (req, re
     })
 })
 
-// get badge
 router.get('/badge', async function (req, res, next) {
   await Badge.findAll()
     .then(badges => {
@@ -655,16 +653,5 @@ router.get('/badge', async function (req, res, next) {
     })
 })
 
-// router.get('/score', async function (req, res, next) {
-//   let data = req.query;
-//   await GachaScore.create(data)
-//     .then(gachaScore => {
-//       res.status(201).json(gachaScore);
-//     })
-//     .catch(err => {
-//       throw err;
-//       return next(err);
-//     })
-// })
 
 module.exports = router;

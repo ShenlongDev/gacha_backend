@@ -12,11 +12,7 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER
     },
     gift_info: {
-      type: Sequelize.STRING
-    },
-    status: {
-      type: Sequelize.ENUM(['ordered', 'delivering', 'completed', 'returned']),
-      defaultValue: 'ordered'
+      type: Sequelize.INTEGER
     },
     address_id: {
       type: Sequelize.INTEGER

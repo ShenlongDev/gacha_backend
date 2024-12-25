@@ -21,7 +21,7 @@ const upload = multer({ storage: storage });
 // GET /gifts
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await Gift.findAll()
@@ -32,6 +32,16 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
         totalPages: Math.ceil(gifts.length / pageSize),
         totalRecords: gifts.length
       });
+    })
+    .catch(err => {
+      return next(err);
+    })
+})
+
+router.get('/all', ensureAuthenticated, async function (req, res, next) {
+  await Gift.findAll()
+    .then(gifts => {
+      res.status(201).json(gifts);
     })
     .catch(err => {
       return next(err);
@@ -114,7 +124,7 @@ router.post('/:giftId/image', ensureAuthenticated, upload.single('image'), async
 router.get('/:giftId/delete', ensureAuthenticated, async function (req, res, next) {
   let giftId = req.params.giftId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await Gift.destroy({
