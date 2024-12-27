@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const ensureAuthenticated = require('../modules/ensureAuthenticated');
-const { Gift, sequelize } = require("../models");
+const { Gift } = require("../models");
 
 const multer = require('multer');
 var path = require('path');

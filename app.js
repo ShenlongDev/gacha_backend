@@ -14,6 +14,7 @@ var giftsRouter = require('./routes/gifts.route');
 var gachausersRouter  = require('./routes/gacha_users.route');
 var gachaScoresRouter  = require('./routes/gacha_scores.route');
 var paymentRouter  = require('./routes/payment.route');
+var notificationRouter  = require('./routes/notification.route');
 
 var app = express();
 app.use(cors());
@@ -59,6 +60,7 @@ app.use('/gifts', giftsRouter);
 app.use('/gachausers', gachausersRouter);
 app.use('/gachaScores', gachaScoresRouter);
 app.use('/payments', paymentRouter);
+app.use('/notifications', notificationRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

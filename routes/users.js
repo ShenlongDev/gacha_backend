@@ -6,7 +6,21 @@ const ensureAuthenticated = require('../modules/ensureAuthenticated')
 var bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const { Payment, User, Address, GachaUser, sequelize } = require("../models");
+
+const multer = require('multer');
+var path = require('path');
+
 const TypedError = require('../modules/ErrorHandler')
+
+const storage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    callback(null, 'public/uploads/');
+  },
+  filename: (req, file, callback) => {
+    callback(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+const upload = multer({ storage: storage });
 
 const stripe = require('stripe')('sk_test_51QMoCoK7S11jMD7Jcv5KDq2rBGEahS3pD3Di2zjHHsIrIFfW6xHhtLGWNqkobJfAGsBuhsWF3xK3jqlEk3xlbjfi00s7rqbNMp');
 
@@ -242,6 +256,24 @@ router.post('/:userId/edit', ensureAuthenticated, async function (req, res, next
       return next(err);
     })
 })
+
+router.post('/:userId/avatar', ensureAuthenticated, upload.single('image'), async (req, res, next) => {
+  const userId = req.params.userId;
+  console.log(userId)
+  try {
+    const imagePath = path.join(__dirname, req.file.path);
+    await User.findOne({ where: { id: userId } })
+      .then(user => {
+        user.update({ avatar: `uploads/${req.file.filename}` });
+        res.json({ imageUrl: `uploads/${req.file.filename}` });
+      })
+      .catch(err => {
+        throw err;
+      })
+  } catch (err) {
+    return next(err);
+  }
+});
 
 router.get('/:userId/delete', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId;

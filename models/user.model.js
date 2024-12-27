@@ -55,6 +55,12 @@ module.exports = (sequelize, Sequelize) => {
     mile: {
       type: Sequelize.INTEGER
     },
+    level: {
+      type: Sequelize.INTEGER
+    },
+    coupon: {
+      type: Sequelize.STRING
+    },
     avatar: {
       type: Sequelize.STRING
     }
