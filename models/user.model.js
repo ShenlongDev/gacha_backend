@@ -45,6 +45,18 @@ module.exports = (sequelize, Sequelize) => {
     role: {
       type: Sequelize.ENUM(['admin', 'user']),
       defaultValue: 'user'
+    },
+    invite_send_code: {
+      type: Sequelize.STRING
+    },
+    invite_receive_code: {
+      type: Sequelize.STRING
+    },
+    mile: {
+      type: Sequelize.INTEGER
+    },
+    avatar: {
+      type: Sequelize.STRING
     }
   },
     {

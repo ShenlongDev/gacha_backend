@@ -19,7 +19,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
             },
             {
                 model: Gacha,
-                attributes: ['name']
+                attributes: ['name', 'image']
             }
         ]
     })
@@ -38,18 +38,34 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
 
 router.post('/:status', ensureAuthenticated, async function (req, res, next) {
     const { status } = req.params;
-    const { ids } = req.body;
-
+    const { ids, userId } = req.body;
+    
     await GachaScore.update(
         { status: status },
-        { where: { id: { [Op.in]: ids } } } // Update based on the same IDs
+        { where: { id: { [Op.in]: ids } } }
     )
-        .then(gachaScores => {
+        .then(async () => {
+            if (status === 'returned') {
+                const scores = await GachaScore.findAll({
+                    where: { id: { [Op.in]: ids } },
+                    attributes: ['score'],
+                });
+                const totalScore = scores.reduce((sum, score) => sum + score.score, 0);
+                const pointsToAdd = Math.floor(totalScore * 0.7);
+
+                const user = await User.findOne({ where: { id: userId } });
+                if (user) {
+                    user.point += pointsToAdd;
+                    await user.save();
+                }
+            }
+    
             res.status(200).json({ message: 'Status updated successfully!' });
         })
-        .catch(err => {
+        .catch((err) => {
             return next(err);
-        })
+        });
+        
 })
 
 router.get('/:gachaUserId', ensureAuthenticated, async function (req, res, next) {

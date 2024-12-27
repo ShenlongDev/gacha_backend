@@ -33,6 +33,9 @@ module.exports = (sequelize, Sequelize) => {
     content: {
       type: Sequelize.STRING,
     },
+    limit: {
+      type: Sequelize.INTEGER,
+    }
   },
     {
       timestamps: true

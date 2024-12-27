@@ -10,6 +10,16 @@ const TypedError = require('../modules/ErrorHandler')
 
 const stripe = require('stripe')('sk_test_51QMoCoK7S11jMD7Jcv5KDq2rBGEahS3pD3Di2zjHHsIrIFfW6xHhtLGWNqkobJfAGsBuhsWF3xK3jqlEk3xlbjfi00s7rqbNMp');
 
+function randomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters[randomIndex];
+  }
+  return result;
+}
+
 router.get('/payment', async (req, res) => {
 
   let Params = req.query;
@@ -22,9 +32,7 @@ router.get('/payment', async (req, res) => {
 
   const { amount, userId, paymentMethodId, cardType } = Params;
 
-
   if (cardType == 'card') {
-
     try {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -36,10 +44,16 @@ router.get('/payment', async (req, res) => {
         return_url: 'https://gacha-server-2412-enpq.onrender.com/'
       }).then(async () => {
         await Payment.create({ user_id: userId, amount: amount, status: '' })
-          .then(async payment => {
+          .then(async () => {
             if (user) {
-              await user.update({ point: user.point * 1 + amount * 1 });
-              res.status(201).json({ point: user.point });
+              await user.update({
+                point: user.point * 1 + amount * 1,
+                deposit: user.deposit * 1 + amount * 1
+              });
+              res.status(201).json({
+                point: user.point,
+                deposit: user.deposit
+              });
             }
           });
       })
@@ -47,13 +61,9 @@ router.get('/payment', async (req, res) => {
           console.log("payment error", err)
           return next(err);
         });
-
-
-
     } catch (error) {
       console.log("catch error", error)
       res.status(500).send({ error: error.message });
-
     }
   }
 });
@@ -70,7 +80,6 @@ router.post('/register', async function (req, res, next) {
       errors: missingFieldErrors,
     })
     throw err;
-    return next(err)
   }
   req.checkBody('email', 'Email is not valid').isEmail();
   let invalidFieldErrors = req.validationErrors()
@@ -79,17 +88,15 @@ router.post('/register', async function (req, res, next) {
       errors: invalidFieldErrors,
     })
     throw err;
-    return next(err)
   }
 
   User.findOne({ where: { email: _user.email } })
     .then((user) => {
       if (user) {
         let err = new TypedError('register error', 403, 'invalid_field', {
-          message: "user is existed"
+          message: "このメールはすでに登録されています。"
         })
         throw err;
-        return next(err);
       }
       else {
         bcrypt.genSalt(10, async function (err, salt) {
@@ -109,13 +116,13 @@ router.post('/register', async function (req, res, next) {
                   role: user.role,
                   expire_in: '1h',
                   point: user.point,
-                  email: user.email
+                  email: user.email,
+                  invite_send_code: randomString(10)
                 });
               })
               .catch(err => {
                 console.error(err);
                 throw err;
-                return next(err);
               });
           });
         });
@@ -123,7 +130,6 @@ router.post('/register', async function (req, res, next) {
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 });
 
@@ -149,12 +155,17 @@ router.post('/login', async function (req, res, next) {
           )
           res.status(201).json({
             user_id: user.id,
-            user_name: user.fullname,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            avatar: user.avatar,
+            email: user.email,
             token: token,
             role: user.role,
             expire_in: '1h',
             point: user.point,
-            email: user.email
+            deposit: user.deposit,
+            invite_send_code: user.invite_send_code,
+            mile: user.mile,
           })
         }
         else {
@@ -170,7 +181,7 @@ router.post('/login', async function (req, res, next) {
 
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
+  const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
@@ -201,12 +212,13 @@ router.get('/:userId', ensureAuthenticated, async function (req, res, next) {
 router.post('/:userId/edit', ensureAuthenticated, async function (req, res, next) {
   req.checkBody('first_name', '姓は必須です。').notEmpty();
   req.checkBody('last_name', '名は必須です。').notEmpty();
-  req.checkBody('kana_first', '姓（カナ）は必須です。').notEmpty();
-  req.checkBody('last_name', '名（カナ）は必須です。').notEmpty();
-  req.checkBody('post_code', '郵便番号は必須です。').notEmpty();
-  req.checkBody('state', '都道府県は必須です。').notEmpty();
-  req.checkBody('address', '住所は必須です。').notEmpty();
-  req.checkBody('phone_number', '電話番号は必須です。').notEmpty();
+  req.checkBody('email', 'メールは必須です。').notEmpty();
+  // req.checkBody('kana_first', '姓（カナ）は必須です。').notEmpty();
+  // req.checkBody('last_name', '名（カナ）は必須です。').notEmpty();
+  // req.checkBody('post_code', '郵便番号は必須です。').notEmpty();
+  // req.checkBody('state', '都道府県は必須です。').notEmpty();
+  // req.checkBody('address', '住所は必須です。').notEmpty();
+  // req.checkBody('phone_number', '電話番号は必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -218,7 +230,7 @@ router.post('/:userId/edit', ensureAuthenticated, async function (req, res, next
   await User.findOne({ where: { id: userId } })
     .then(async (user) => {
       if (!user) {
-        let err = new TypedError('login error', 403, 'invalid_field', { message: "間違ったIDです。" })
+        let err = new TypedError('login error', 403, 'invalid_field', { message: "無効なユーザーIDです。" })
         return next(err)
       }
       else {
@@ -400,7 +412,6 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
 })
 
 router.get('/payments/all', ensureAuthenticated, async function (req, res, next) {
-  // await Payment.findAll({ where: { status: "deposit" } })
   await Payment.findAll()
     .then(payments => {
       res.status(200).json(payments);
@@ -408,7 +419,6 @@ router.get('/payments/all', ensureAuthenticated, async function (req, res, next)
     .catch(err => {
       console.error(err);
       throw err;
-      return next(err);
     });
 })
 
