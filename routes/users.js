@@ -39,7 +39,6 @@ router.get('/payment', async (req, res) => {
           .then(async payment => {
             if (user) {
               await user.update({ point: user.point * 1 + amount * 1 });
-              console.log('paymentMethodId+amount', user.point);
               res.status(201).json({ point: user.point });
             }
           });
@@ -129,16 +128,13 @@ router.post('/register', async function (req, res, next) {
 });
 
 router.post('/login', async function (req, res, next) {
-  console.log(req.body);
   const { email, password } = req.body || {};
-  // console.log(email, password);
   if (!email || !password) {
     let err = new TypedError('login error', 400, 'missing_field', { message: "missing email or password" });
     return next(err);
   }
   await User.findOne({ where: { email: email } })
     .then(user => {
-      // console.log(user);
       if (!user) {
         let err = new TypedError('login error', 403, 'invalid_field', { message: "Incorrect email or password" });
         return next(err);

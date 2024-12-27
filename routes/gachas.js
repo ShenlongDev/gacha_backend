@@ -218,7 +218,6 @@ router.get('/category/:category', async function (req, res, next) {
         });
       })
       .catch(err => {
-        throw err;
         return next(err);
       })
   }
