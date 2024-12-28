@@ -27,6 +27,12 @@ module.exports = (sequelize, Sequelize) => {
 		address: {
 			type: Sequelize.STRING
 		},
+		address1: {
+			type: Sequelize.STRING
+		},
+		address2: {
+			type: Sequelize.STRING
+		},
 		checked: {
 			type: Sequelize.BOOLEAN,
 			defaultValue: false,
