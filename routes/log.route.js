@@ -56,6 +56,19 @@ router.get('/all', ensureAuthenticated, async function (req, res, next) {
     })
 })
 
+router.get('/:userId/all', ensureAuthenticated, async function (req, res, next) {
+  const userId = req.params.userId;
+  await Log.findAll({
+    user_id: userId
+  })
+    .then(logs => {
+      res.status(201).json(logs);
+    })
+    .catch(err => {
+      return next(err);
+    })
+})
+
 // router.get('/:logId/item', async function (req, res, next) {
 //   const logId = req.params.logId;
 //   await Log.findOne({ where: { id: logId } })

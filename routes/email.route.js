@@ -3,7 +3,6 @@ const sendEmail = require('../emailService');
 const router = express.Router();
 
 router.post('/send', async (req, res) => {
-    console.log('email test');
     const { to, subject, text, html } = req.body;
 
     try {
