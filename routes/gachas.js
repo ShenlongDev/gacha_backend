@@ -265,7 +265,6 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
       errors: missingFieldErrors,
     })
     throw err;
-    return next(err)
   }
   await Gacha.create(data)
     .then(gacha => {
@@ -273,7 +272,6 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 })
 
@@ -296,7 +294,9 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
         name: data.name,
         point: data.point,
         win_probability: data.win_probability,
-        category_id: data.category_id
+        category_id: data.category_id,
+        content: data.content,
+        badge_ids: data.badge_ids
       });
       res.status(201).json(gacha);
     })

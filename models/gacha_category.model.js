@@ -1,7 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-
   const gachaCategory = sequelize.define("GachaCategory", {
-
     name: {
       type: Sequelize.STRING
     }
@@ -9,7 +7,5 @@ module.exports = (sequelize, Sequelize) => {
     {
       timestamps: false
     });
-
   return gachaCategory;
-
 };
