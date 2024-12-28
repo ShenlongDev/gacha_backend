@@ -16,6 +16,7 @@ db.Gift = require("./gift.model.js")(sequelize, Sequelize);
 db.Payment = require("./payment.model.js")(sequelize, Sequelize);
 db.GachaScore = require("./gacha_score.model.js")(sequelize, Sequelize);
 db.Notification = require("./notification.model.js")(sequelize, Sequelize);
+db.Log = require("./log.model.js")(sequelize, Sequelize);
 
 db.GachaCategory.hasMany(db.Gacha, { foreignKey: 'category_id' });
 db.Gacha.belongsTo(db.GachaCategory, { foreignKey: 'category_id' });
@@ -31,5 +32,7 @@ db.Address.hasMany(db.GachaUser, { foreignKey: 'address_id' });
 db.GachaUser.belongsTo(db.Address, { foreignKey: 'address_id' });
 db.User.hasMany(db.Payment, { foreignKey: 'user_id' });
 db.Payment.belongsTo(db.User, { foreignKey: 'user_id' });
+db.User.hasMany(db.Log, { foreignKey: 'user_id' });
+db.Log.belongsTo(db.User, { foreignKey: 'user_id' });
 
 module.exports = db;

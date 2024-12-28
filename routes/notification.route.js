@@ -94,9 +94,8 @@ router.post('/:notificationId/image', ensureAuthenticated, upload.single('image'
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
-});
+})
 
 router.get('/:notificationId/delete', ensureAuthenticated, async function (req, res, next) {
   let notificationId = req.params.notificationId;
