@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-  const userList = sequelize.define("User", {
+  const user = sequelize.define("User", {
     first_name: {
       type: Sequelize.STRING,
     },
@@ -63,10 +63,18 @@ module.exports = (sequelize, Sequelize) => {
     },
     avatar: {
       type: Sequelize.STRING
-    }
+    },
+    resetPasswordToken: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    resetPasswordExpires: {
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
   },
     {
       timestamps: false
     });
-  return userList;
+  return user;
 };

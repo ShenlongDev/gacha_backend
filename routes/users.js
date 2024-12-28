@@ -5,6 +5,11 @@ const config = require('../configs/jwt-config')
 const ensureAuthenticated = require('../modules/ensureAuthenticated')
 var bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+require('dotenv').config();
+
+const sendEmail = require('../emailService');
 const { Payment, User, Address, GachaUser, sequelize } = require("../models");
 
 const multer = require('multer');
@@ -479,6 +484,94 @@ router.get('/:userId/payments', ensureAuthenticated, async function (req, res, n
     })
 })
 
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find the user by email
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: '無効なメールアドレス' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Save token and expiry to the database
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // Token valid for 10 minutes
+    await user.save();
+
+    // Send reset link via email
+    const transporter = nodemailer.createTransport({
+      host: process.env.MAIL_HOST,
+      port: process.env.MAIL_PORT,
+      secure: false, // Use true for port 465
+      auth: {
+        user: process.env.MAIL_USERNAME,
+        pass: process.env.MAIL_PASSWORD,
+      },
+    });
+
+    const resetURL = `${req.protocol}://${req.get('host')}/users/reset-password/${resetToken}`;
+    const mailOptions = {
+      // from: 'GachaX <no-reply@yourapp.com>',
+      from: `GachaX <${process.env.MAIL_USERNAME}>`,
+      to: email,
+      subject: 'パスワード再設定',
+      text: `下記のボタンをクリックしてパスワードを再設定してください。`,
+      html: `<p>下記のボタンをクリックしてパスワードを再設定してください。:</p>
+             <a href="${process.env.FRONTEND_URL}/reset-password/${resetToken}" 
+              style="display: inline-block; padding: 10px 20px; font-size: 16px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px;">
+              パスワード再設定
+            </a>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Password reset email sent!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error sending password reset email' });
+  }
+});
+
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // Hash the token
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find the user by the token and ensure it's not expired
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: { [Op.gt]: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Update the user's password and clear reset token fields
+    user.password = hashedPassword; // Ensure this is hashed before saving
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error resetting password' });
+  }
+});
 
 
 module.exports = router;
