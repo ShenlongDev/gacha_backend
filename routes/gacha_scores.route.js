@@ -19,7 +19,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
             },
             {
                 model: Gacha,
-                attributes: ['name', 'image']
+                attributes: ['name', 'image', 'point']
             }
         ]
     })
