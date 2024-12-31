@@ -553,7 +553,8 @@ router.post('/reset-password/:token', async (req, res) => {
     });
     
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired token' });
+      // return res.status(400).json({ message: 'Invalid or expired token' });
+      return res.json({ error: "expired" });
     }
 
     const saltRounds = 10;
@@ -565,10 +566,11 @@ router.post('/reset-password/:token', async (req, res) => {
     user.resetPasswordExpires = null;
     await user.save();
    
-    res.status(200).json({ message: 'Password reset successful!' });
+    return res.json({ error: "successful" });
+    
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error resetting password' });
+    return res.json({ error: "expired" });
   }
 });
 
