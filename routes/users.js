@@ -540,10 +540,10 @@ router.post('/reset-password/:token', async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
-
+    
     // Hash the token
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-
+    
     // Find the user by the token and ensure it's not expired
     const user = await User.findOne({
       where: {
@@ -551,7 +551,7 @@ router.post('/reset-password/:token', async (req, res) => {
         resetPasswordExpires: { [Op.gt]: new Date() },
       },
     });
-
+    
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired token' });
     }
@@ -564,7 +564,7 @@ router.post('/reset-password/:token', async (req, res) => {
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
     await user.save();
-
+   
     res.status(200).json({ message: 'Password reset successful!' });
   } catch (error) {
     console.error(error);
