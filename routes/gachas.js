@@ -14,6 +14,7 @@ var path = require('path');
 
 const TypedError = require('../modules/ErrorHandler');
 const { totalmem } = require('os');
+const { order } = require('paypal-rest-sdk');
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
@@ -517,6 +518,7 @@ router.get('/:userId/histories/:status', ensureAuthenticated, async function (re
   
   await GachaUser.findAll({
     where: { user_id: userId },
+    order:{['createdAt', 'DESC']},
     include: [
       {
         model: Gacha,

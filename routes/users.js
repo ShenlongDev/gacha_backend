@@ -111,9 +111,9 @@ router.post('/register', async function (req, res, next) {
 
       } else {
 
-        bcrypt.genSalt(10, async function (err, salt) {
+        bcrypt.genSalt(10, async function ( salt) {
 
-          await bcrypt.hash(_user.password, salt, function (err, hash) {
+          await bcrypt.hash(_user.password, salt, function ( hash) {
 
             _user.password = hash;
 
@@ -147,7 +147,7 @@ router.post('/register', async function (req, res, next) {
       }
     })
     .catch(err => {
-      throw err;
+      return res.json({ error: "mail_edit_error" });
     })
 });
 
@@ -336,6 +336,7 @@ router.post('/:userId/address/add', ensureAuthenticated, async function (req, re
 })
 
 router.get('/addresses/:id', ensureAuthenticated, async function (req, res, next) {
+  console.log("ffff");
   let id = req.params.id;
   await Address.findOne({
     where: {
@@ -351,14 +352,21 @@ router.get('/addresses/:id', ensureAuthenticated, async function (req, res, next
 })
 
 router.post('/addresses/:id/edit', ensureAuthenticated, async function (req, res, next) {
-  let id = req.params.id;
+
+  let { id } = req.params;
+  console.log(req.body);
+  
   await Address.findOne({
     where: {
       id: id
     }
   })
     .then(async (address) => {
+
+      
+
       await address.update(req.body);
+
       res.status(201).json(address);
     })
     .catch(err => {
