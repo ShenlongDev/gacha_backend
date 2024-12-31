@@ -518,7 +518,7 @@ router.get('/:userId/histories/:status', ensureAuthenticated, async function (re
   
   await GachaUser.findAll({
     where: { user_id: userId },
-    order:{['createdAt', 'DESC']},
+    order:[['createdAt', 'DESC']],
     include: [
       {
         model: Gacha,
