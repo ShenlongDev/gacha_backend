@@ -88,45 +88,41 @@ router.get('/payment', async (req, res) => {
 });
 
 router.post('/register', async function (req, res, next) {
+
   let _user = req.body;
   req.checkBody('first_name', 'FirstName is required').notEmpty();
   req.checkBody('last_name', 'LastName is required').notEmpty();
   req.checkBody('email', 'Email is required').notEmpty();
   req.checkBody('password', 'Password is required').notEmpty();
-  let missingFieldErrors = req.validationErrors();
-  if (missingFieldErrors) {
-    let err = new TypedError('register error', 400, 'missing_field', {
-      errors: missingFieldErrors,
-    })
-    throw err;
-  }
 
-  req.checkBody('email', 'このメールが正しくありません。').isEmail();
-  
-  let invalidFieldErrors = req.validationErrors()
+  req.checkBody('email', 'mail error').isEmail();
+
+  let invalidFieldErrors = req.validationErrors();
+
   if (invalidFieldErrors) {
-    let err = new TypedError('register error', 403, 'このメールが正しくありません。', {
-      errors: invalidFieldErrors,
-    })
-    throw err;
+    return res.json({ error: "mail_type_error" });
   }
 
   User.findOne({ where: { email: _user.email } })
     .then((user) => {
+
       if (user) {
-        let err = new TypedError('register error', 403, 'invalid_field', {
-          message: "このメールはすでに登録されています。"
-        })
-        throw err;
-      }
-      else {
+        return res.json({ error: "mail_two_error" });
+
+      } else {
+
         bcrypt.genSalt(10, async function (err, salt) {
+
           await bcrypt.hash(_user.password, salt, function (err, hash) {
+
             _user.password = hash;
+
             let token = jwt.sign(
+
               { email: _user.email },
               config.secret,
               { expiresIn: '1h' }
+
             )
             User.create({ ..._user, _token: token })
               .then(user => {
@@ -144,8 +140,7 @@ router.post('/register', async function (req, res, next) {
                 });
               })
               .catch(err => {
-                console.error(err);
-                throw err;
+                return res.json({ error: "mail_edit_error" });
               });
           });
         });
