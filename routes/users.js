@@ -100,10 +100,12 @@ router.post('/register', async function (req, res, next) {
     })
     throw err;
   }
-  req.checkBody('email', 'Email is not valid').isEmail();
+
+  req.checkBody('email', 'このメールが正しくありません。').isEmail();
+  
   let invalidFieldErrors = req.validationErrors()
   if (invalidFieldErrors) {
-    let err = new TypedError('register error', 403, 'invalid_field', {
+    let err = new TypedError('register error', 403, 'このメールが正しくありません。', {
       errors: invalidFieldErrors,
     })
     throw err;
@@ -135,6 +137,8 @@ router.post('/register', async function (req, res, next) {
                   role: user.role,
                   expire_in: '1h',
                   point: user.point,
+                  first_name: user.first_name,
+                  last_name: user.last_name,
                   email: user.email,
                   invite_send_code: randomString(10)
                 });
