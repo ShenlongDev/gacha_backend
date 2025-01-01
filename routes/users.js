@@ -102,52 +102,54 @@ router.post('/register', async function (req, res, next) {
   if (invalidFieldErrors) {
     return res.json({ error: "mail_type_error" });
   }
-  console.log("fffffddd");
+ 
   User.findOne({ where: { email: _user.email } })
-    .then((user) => {
+    .then(async (user) => {
 
-      
+
       if (user) {
         return res.json({ error: "mail_two_error" });
 
       } else {
-        
 
-        bcrypt.genSalt(10, async function (erro, salt) {
-          
-          await bcrypt.hash(_user.password, salt, function (erro, hash) {
-            
-            _user.password = hash;
 
-            let token = jwt.sign(
+        // bcrypt.genSalt(10, async function (erro, salt) {
 
-              { email: _user.email },
-              config.secret,
-              { expiresIn: '1h' }
+        //   await bcrypt.hash(_user.password, salt, function (erro, hash) {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-            )
-            console.log(salt);
+        _user.password = hashedPassword;
 
-            User.create({ ..._user, _token: token })
-              .then(user => {
-                return res.json({
-                  user_id: user.id,
-                  user_name: user.first_name + ' ' + user.last_name,
-                  token: token,
-                  role: user.role,
-                  expire_in: '1h',
-                  point: user.point,
-                  first_name: user.first_name,
-                  last_name: user.last_name,
-                  email: user.email,
-                  invite_send_code: randomString(10)
-                });
-              })
-              .catch(err => {
-                return res.json({ error: "mail_add_error" });
-              });
+        let token = jwt.sign(
+
+          { email: _user.email },
+          config.secret,
+          { expiresIn: '1h' }
+
+        )
+        console.log(hashedPassword);
+
+        User.create({ ..._user, _token: token })
+          .then(user => {
+            return res.json({
+              user_id: user.id,
+              user_name: user.first_name + ' ' + user.last_name,
+              token: token,
+              role: user.role,
+              expire_in: '1h',
+              point: user.point,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              email: user.email,
+              invite_send_code: randomString(10)
+            });
+          })
+          .catch(err => {
+            return res.json({ error: "mail_add_error" });
           });
-        });
+        //   });
+        // });
       }
     })
     .catch(err => {
@@ -445,10 +447,10 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
             throw err;
             return next(err);
           })
-        
+
         await Log.create({
-          user_id : userId,
-          content : amount + "ポイントを購入しました。"
+          user_id: userId,
+          content: amount + "ポイントを購入しました。"
         })
           .then(log => {
             res.status(201).json(log);
