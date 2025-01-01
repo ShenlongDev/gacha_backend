@@ -10,7 +10,7 @@ const crypto = require('crypto');
 require('dotenv').config();
 
 const sendEmail = require('../emailService');
-const { Payment, User, Address, GachaUser, sequelize } = require("../models");
+const { Payment, User, Address, GachaUser, sequelize, Log } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
@@ -111,9 +111,9 @@ router.post('/register', async function (req, res, next) {
 
       } else {
 
-        bcrypt.genSalt(10, async function ( salt) {
+        bcrypt.genSalt(10, async function (salt) {
 
-          await bcrypt.hash(_user.password, salt, function ( hash) {
+          await bcrypt.hash(_user.password, salt, function (hash) {
 
             _user.password = hash;
 
@@ -355,7 +355,7 @@ router.post('/addresses/:id/edit', ensureAuthenticated, async function (req, res
 
   let { id } = req.params;
   console.log(req.body);
-  
+
   await Address.findOne({
     where: {
       id: id
@@ -363,7 +363,7 @@ router.post('/addresses/:id/edit', ensureAuthenticated, async function (req, res
   })
     .then(async (address) => {
 
-      
+
 
       await address.update(req.body);
 
@@ -432,10 +432,22 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
         await user.update(
           {
             point: parseInt(user.point) + parseInt(amount),
-            deposit: parseInt(user.deposit) + parseInt(amount)
+            // deposit: parseInt(user.deposit) + parseInt(amount)
           })
           .then(user => {
             res.status(201).json(user.point);
+          })
+          .catch(err => {
+            throw err;
+            return next(err);
+          })
+        
+        await Log.create({
+          user_id : userId,
+          content : amount + "ポイントを購入しました。"
+        })
+          .then(log => {
+            res.status(201).json(log);
           })
           .catch(err => {
             throw err;
@@ -548,10 +560,10 @@ router.post('/reset-password/:token', async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
-    
+
     // Hash the token
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-    
+
     // Find the user by the token and ensure it's not expired
     const user = await User.findOne({
       where: {
@@ -559,7 +571,7 @@ router.post('/reset-password/:token', async (req, res) => {
         resetPasswordExpires: { [Op.gt]: new Date() },
       },
     });
-    
+
     if (!user) {
       // return res.status(400).json({ message: 'Invalid or expired token' });
       return res.json({ error: "expired" });
@@ -573,9 +585,9 @@ router.post('/reset-password/:token', async (req, res) => {
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
     await user.save();
-   
+
     return res.json({ error: "successful" });
-    
+
   } catch (error) {
     console.error(error);
     return res.json({ error: "expired" });
