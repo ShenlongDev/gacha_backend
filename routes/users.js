@@ -102,19 +102,21 @@ router.post('/register', async function (req, res, next) {
   if (invalidFieldErrors) {
     return res.json({ error: "mail_type_error" });
   }
-
+  console.log("fffffddd");
   User.findOne({ where: { email: _user.email } })
     .then((user) => {
 
+      
       if (user) {
         return res.json({ error: "mail_two_error" });
 
       } else {
+        
 
-        bcrypt.genSalt(10, async function (salt) {
-
-          await bcrypt.hash(_user.password, salt, function (hash) {
-
+        bcrypt.genSalt(10, async function (erro, salt) {
+          
+          await bcrypt.hash(_user.password, salt, function (erro, hash) {
+            
             _user.password = hash;
 
             let token = jwt.sign(
@@ -124,6 +126,8 @@ router.post('/register', async function (req, res, next) {
               { expiresIn: '1h' }
 
             )
+            console.log(salt);
+
             User.create({ ..._user, _token: token })
               .then(user => {
                 return res.json({
@@ -140,7 +144,7 @@ router.post('/register', async function (req, res, next) {
                 });
               })
               .catch(err => {
-                return res.json({ error: "mail_edit_error" });
+                return res.json({ error: "mail_add_error" });
               });
           });
         });
