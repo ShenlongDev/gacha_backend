@@ -13,10 +13,14 @@ function ensureAuthenticated(req, res, next) {
   if (token) {
     jwt.verify(token, config.secret, (err, decoded) => {
       if (err) {
+     
+
         let err = new TypedError('token', 401, 'invalid_field', {
-          message: "Token is not valid"
+          message: "Token is not valid"         
         })
-        return next(err)
+
+        return next(err);
+
       } else {
         // bind on request
         req.decoded = decoded;
