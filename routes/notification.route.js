@@ -22,7 +22,7 @@ const upload = multer({ storage: storage });
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   await Notification.findAll()
     .then(notifications => {
-      res.status(201).json(notifications);
+      res.status(200).json(notifications);
     })
     .catch(err => {
       return next(err);
@@ -53,7 +53,7 @@ router.get('/:notificationId/item', async function (req, res, next) {
   const notificationId = req.params.notificationId;
   await Notification.findOne({ where: { id: notificationId } })
     .then(async notification => {
-      res.status(201).json(notification);
+      res.status(200).json(notification);
     })
     .catch(err => {
       return next(err);
@@ -77,7 +77,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
         title: data.title,
         content: data.content
       });
-      res.status(201).json(notification);
+      res.status(200).json(notification);
     })
     .catch(err => {
       throw err;
@@ -107,7 +107,7 @@ router.get('/:notificationId/delete', ensureAuthenticated, async function (req, 
     .then(async () => {
       await Notification.findAll()
         .then(notifications => {
-          res.status(201).json(notifications);
+          res.status(200).json(notifications);
         })
     })
     .catch(err => {

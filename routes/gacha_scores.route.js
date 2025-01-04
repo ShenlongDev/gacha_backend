@@ -24,7 +24,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
         ]
     })
         .then(gachaUsers => {
-            res.status(201).json({
+            res.status(200).json({
                 data: gachaUsers.slice(startIndex, endIndex),
                 currentPage: parseInt(pageNumber),
                 totalPages: Math.ceil(gachaUsers.length / pageSize),
@@ -73,7 +73,7 @@ router.get('/:gachaUserId', ensureAuthenticated, async function (req, res, next)
     
     await GachaScore.findAll({ where: { gacha_user_id: gachaUserId } })
         .then(async gachaScores => {
-            res.status(201).json(gachaScores);
+            res.status(200).json(gachaScores);
         })
         .catch(err => {
             return next(err);

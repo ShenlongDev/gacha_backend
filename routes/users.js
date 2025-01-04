@@ -69,7 +69,7 @@ router.get('/payment', async (req, res) => {
                 point: user.point * 1 + amount * 1,
                 deposit: user.deposit * 1 + amount * 1
               });
-              res.status(201).json({
+              res.status(200).json({
                 point: user.point,
                 deposit: user.deposit
               });
@@ -128,7 +128,7 @@ router.post('/register', async function (req, res, next) {
             )
             User.create({ ..._user, _token: token })
               .then(user => {
-                return res.json({
+                res.status(201).json({
                   user_id: user.id,
                   user_name: user.first_name + ' ' + user.last_name,
                   token: token,
@@ -172,7 +172,7 @@ router.post('/login', async function (req, res, next) {
             config.secret,
             { expiresIn: '1h' }
           )
-          res.status(201).json({
+          res.status(200).json({
             user_id: user.id,
             first_name: user.first_name,
             last_name: user.last_name,
@@ -188,7 +188,7 @@ router.post('/login', async function (req, res, next) {
           })
         }
         else {
-          let err = new TypedError('login error', 403, 'password_not_match', { message: "Incorrect  password" })
+          let err = new TypedError('login error', 'password_not_match', { message: "Incorrect  password" })
           return next(err)
         }
       });
@@ -205,7 +205,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
   const endIndex = pageNumber * pageSize;
   await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
     .then(users => {
-      res.status(201).json({
+      res.status(200).json({
         data: users.slice(startIndex, endIndex),
         currentPage: parseInt(pageNumber),
         totalPages: Math.ceil(users.length / pageSize),
@@ -221,7 +221,7 @@ router.get('/:userId', ensureAuthenticated, async function (req, res, next) {
   const userId = req.params.userId;
   await User.findOne({ where: { id: userId } })
     .then(user => {
-      res.status(201).json(user);
+      res.status(200).json(user);
     })
     .catch(err => {
       return next(err);
@@ -254,7 +254,7 @@ router.post('/:userId/edit', ensureAuthenticated, async function (req, res, next
       }
       else {
         await user.update(req.body);
-        res.status(201).json(user);
+        res.status(200).json(user);
       }
     })
     .catch(err => {
@@ -294,7 +294,7 @@ router.get('/:userId/delete', ensureAuthenticated, async function (req, res, nex
     .then(async (user) => {
       await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
         .then(users => {
-          res.status(201).json({
+          res.status(200).json({
             data: users.slice(startIndex, endIndex),
             currentPage: parseInt(pageNumber),
             totalPages: Math.ceil(users.length / pageSize),
@@ -315,7 +315,7 @@ router.get('/:userId/addresses', ensureAuthenticated, async function (req, res, 
     }
   })
     .then(async (addresses) => {
-      res.status(201).json(addresses);
+      res.status(200).json(addresses);
     })
     .catch(err => {
       return next(err);
@@ -344,7 +344,7 @@ router.get('/addresses/:id', ensureAuthenticated, async function (req, res, next
     }
   })
     .then(async (address) => {
-      res.status(201).json(address);
+      res.status(200).json(address);
     })
     .catch(err => {
       return next(err);
@@ -360,7 +360,7 @@ router.post('/addresses/:id/edit', ensureAuthenticated, async function (req, res
   })
     .then(async (address) => {
       await address.update(req.body);
-      res.status(201).json(address);
+      res.status(200).json(address);
     })
     .catch(err => {
       return next(err);
@@ -384,7 +384,7 @@ router.get('/:userId/addresses/:id/set/:historyId', ensureAuthenticated, async f
         .catch(err => {
           return next(err);
         })
-      res.status(201).json(address);
+      res.status(200).json(address);
     })
     .catch(err => {
       return next(err);
@@ -401,7 +401,7 @@ router.get('/:userId/addresses/:id/delete', ensureAuthenticated, async function 
     .then(async (address) => {
       await Address.findAll({ where: { user_id: userId } })
         .then(addresses => {
-          res.status(201).json(addresses);
+          res.status(200).json(addresses);
         })
     })
     .catch(err => {
@@ -428,11 +428,10 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
             deposit: parseInt(user.deposit) + parseInt(amount)
           })
           .then(user => {
-            res.status(201).json(user.point);
+            res.status(200).json(user.point);
           })
           .catch(err => {
             throw err;
-            return next(err);
           })
       })
         .catch(err => {

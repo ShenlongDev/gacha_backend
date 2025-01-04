@@ -7,7 +7,7 @@ const { Payment, User } = require("../models");
 router.get('/all', ensureAuthenticated, async function (req, res, next) {
   await Payment.findAll()
     .then(payments => {
-      res.status(201).json(payments);
+      res.status(200).json(payments);
     })
     .catch(err => {
       return next(err);

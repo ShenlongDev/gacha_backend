@@ -7,7 +7,7 @@ const { Badge, sequelize } = require("../models");
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   await Badge.findAll()
     .then(badges => {
-      res.status(201).json(badges);
+      res.status(200).json(badges);
     })
     .catch(err => {
       return next(err);
@@ -41,7 +41,7 @@ router.get('/:badgeId/item', async function (req, res, next) {
   const badgeId = req.params.badgeId;
   await Badge.findOne({ where: { id: badgeId } })
     .then(async badge => {
-      res.status(201).json(badge);
+      res.status(200).json(badge);
     })
     .catch(err => {
       return next(err);
@@ -67,7 +67,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
         color: data.color,
         font_color: data.font_color
       });
-      res.status(201).json(badge);
+      res.status(200).json(badge);
     })
     .catch(err => {
       throw err;
@@ -85,7 +85,7 @@ router.get('/:badgeId/delete', ensureAuthenticated, async function (req, res, ne
     .then(async () => {
       await Badge.findAll()
         .then(badges => {
-          res.status(201).json(badges);
+          res.status(200).json(badges);
         })
     })
     .catch(err => {

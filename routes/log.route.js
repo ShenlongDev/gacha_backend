@@ -3,21 +3,6 @@ var router = express.Router();
 const ensureAuthenticated = require('../modules/ensureAuthenticated');
 const { Log, User } = require("../models");
 
-// const multer = require('multer');
-// var path = require('path');
-
-// const TypedError = require('../modules/ErrorHandler')
-
-// const storage = multer.diskStorage({
-//   destination: (req, file, callback) => {
-//     callback(null, 'public/uploads/');
-//   },
-//   filename: (req, file, callback) => {
-//     callback(null, `${Date.now()}-${file.originalname}`);
-//   },
-// });
-// const upload = multer({ storage: storage });
-
 // GET /logs
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageNumber = req.query.page || 1;
@@ -33,8 +18,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
     ]
   })
     .then(logs => {
-      console.log(logs);
-      res.status(201).json({
+      res.status(200).json({
         data: logs.slice(startIndex, endIndex),
         currentPage: parseInt(pageNumber),
         totalPages: Math.ceil(logs.length / pageSize),
@@ -49,7 +33,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
 router.get('/all', ensureAuthenticated, async function (req, res, next) {
   await Log.findAll()
     .then(logs => {
-      res.status(201).json(logs);
+      res.status(200).json(logs);
     })
     .catch(err => {
       return next(err);
@@ -62,7 +46,7 @@ router.get('/:userId/all', ensureAuthenticated, async function (req, res, next) 
     user_id: userId
   })
     .then(logs => {
-      res.status(201).json(logs);
+      res.status(200).json(logs);
     })
     .catch(err => {
       return next(err);
@@ -73,7 +57,7 @@ router.get('/:userId/all', ensureAuthenticated, async function (req, res, next) 
 //   const logId = req.params.logId;
 //   await Log.findOne({ where: { id: logId } })
 //     .then(async log => {
-//       res.status(201).json(log);
+//       res.status(200).json(log);
 //     })
 //     .catch(err => {
 //       return next(err);
@@ -98,7 +82,7 @@ router.get('/:userId/all', ensureAuthenticated, async function (req, res, next) 
 //         point: data.point,
 //         image: data.image
 //       });
-//       res.status(201).json(log);
+//       res.status(200).json(log);
 //     })
 //     .catch(err => {
 //       throw err;
@@ -120,7 +104,7 @@ router.get('/:userId/all', ensureAuthenticated, async function (req, res, next) 
 //   }
 //   await Log.create(data)
 //     .then(log => {
-//       res.status(201).json(log);
+//       res.status(200).json(log);
 //     })
 //     .catch(err => {
 //       throw err;
@@ -156,7 +140,7 @@ router.get('/:userId/all', ensureAuthenticated, async function (req, res, next) 
 //     .then(async () => {
 //       await Log.findAll()
 //         .then(logs => {
-//           res.status(201).json({
+//           res.status(200).json({
 //             data: logs.slice(startIndex, endIndex),
 //             currentPage: parseInt(pageNumber),
 //             totalPages: Math.ceil(logs.length / pageSize),

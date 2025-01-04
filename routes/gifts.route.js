@@ -26,7 +26,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
   const endIndex = pageNumber * pageSize;
   await Gift.findAll()
     .then(gifts => {
-      res.status(201).json({
+      res.status(200).json({
         data: gifts.slice(startIndex, endIndex),
         currentPage: parseInt(pageNumber),
         totalPages: Math.ceil(gifts.length / pageSize),
@@ -41,7 +41,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
 router.get('/all', ensureAuthenticated, async function (req, res, next) {
   await Gift.findAll()
     .then(gifts => {
-      res.status(201).json(gifts);
+      res.status(200).json(gifts);
     })
     .catch(err => {
       return next(err);
@@ -52,7 +52,7 @@ router.get('/:giftId/item', async function (req, res, next) {
   const giftId = req.params.giftId;
   await Gift.findOne({ where: { id: giftId } })
     .then(async gift => {
-      res.status(201).json(gift);
+      res.status(200).json(gift);
     })
     .catch(err => {
       return next(err);
@@ -77,7 +77,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
         point: data.point,
         image: data.image
       });
-      res.status(201).json(gift);
+      res.status(200).json(gift);
     })
     .catch(err => {
       throw err;
@@ -103,7 +103,6 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 })
 
@@ -117,7 +116,6 @@ router.post('/:giftId/image', ensureAuthenticated, upload.single('image'), async
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 });
 
@@ -135,7 +133,7 @@ router.get('/:giftId/delete', ensureAuthenticated, async function (req, res, nex
     .then(async () => {
       await Gift.findAll()
         .then(gifts => {
-          res.status(201).json({
+          res.status(200).json({
             data: gifts.slice(startIndex, endIndex),
             currentPage: parseInt(pageNumber),
             totalPages: Math.ceil(gifts.length / pageSize),

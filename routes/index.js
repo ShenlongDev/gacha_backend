@@ -209,10 +209,8 @@ router.get('/checkout/:cartId', ensureAuthenticated, function (req, res, next) {
     paypal.configure(paypal_config);
     paypal.payment.create(create_payment_json, function (error, payment) {
       if (error) {
-        console.log(JSON.stringify(error));
         return next(error);
       } else {
-        console.log(payment);
         for (const link of payment.links) {
           if (link.rel === 'approval_url') {
             res.json(link.href);
@@ -233,8 +231,6 @@ router.get('/payment/success', ensureAuthenticated, function (req, res, next) {
       return next(error);
     } else {
       if (payment.state == 'approved') {
-        console.log('payment completed successfully');
-        console.log(payment);
         res.json({ payment });
       } else {
         console.log('payment not successful');

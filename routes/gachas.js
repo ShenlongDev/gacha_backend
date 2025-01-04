@@ -95,7 +95,7 @@ class getGiftCards {
 router.get('/categories', async function (req, res, next) {
   await GachaCategory.findAll()
     .then(categories => {
-      res.status(201).json(categories);
+      res.status(200).json(categories);
     })
     .catch(err => {
       return next(err);
@@ -108,7 +108,7 @@ router.post('/categories/edit', ensureAuthenticated, async function (req, res, n
     await GachaCategory.findByPk(data.id)
       .then(async (category) => {
         await category.update({ name: data.name });
-        res.status(201).json(category);
+        res.status(200).json(category);
       })
       .catch(err => {
         return next(err);
@@ -151,7 +151,7 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
     .then(async (category) => {
       await GachaCategory.findAll()
         .then(categories => {
-          res.status(201).json(categories);
+          res.status(200).json(categories);
         })
     })
     .catch(err => {
@@ -169,7 +169,7 @@ router.get('/category/:category', async function (req, res, next) {
   if (category == 'all') {
     await Gacha.findAll({ include: [GachaCategory] })
       .then(gachas => {
-        res.status(201).json({
+        res.status(200).json({
           data: gachas.slice(startIndex, endIndex),
           currentPage: parseInt(pageNumber),
           totalPages: Math.ceil(gachas.length / pageSize),
@@ -190,7 +190,7 @@ router.get('/category/:category', async function (req, res, next) {
       include: [GachaCategory]
     })
       .then(gachas => {
-        res.status(201).json({
+        res.status(200).json({
           data: gachas.slice(0, 10),
           currentPage: parseInt(1),
           totalPages: 1,
@@ -210,7 +210,7 @@ router.get('/category/:category', async function (req, res, next) {
       include: [GachaCategory]
     })
       .then(gachas => {
-        res.status(201).json({
+        res.status(200).json({
           data: gachas.slice(0, 10),
           currentPage: parseInt(1),
           totalPages: 1,
@@ -229,7 +229,7 @@ router.get('/category/:category', async function (req, res, next) {
       }]
     })
       .then(gachas => {
-        res.status(201).json({
+        res.status(200).json({
           data: gachas.slice(startIndex, endIndex),
           currentPage: parseInt(pageNumber),
           totalPages: Math.ceil(gachas.length / pageSize),
@@ -246,7 +246,7 @@ router.get('/:gachaId/item', async function (req, res, next) {
   const gachaId = req.params.gachaId;
   await Gacha.findOne({ where: { id: gachaId } })
     .then(async gacha => {
-      res.status(201).json(gacha);
+      res.status(200).json(gacha);
     })
     .catch(err => {
       return next(err);
@@ -298,7 +298,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
         content: data.content,
         badge_ids: data.badge_ids
       });
-      res.status(201).json(gacha);
+      res.status(200).json(gacha);
     })
     .catch(err => {
       throw err;
@@ -334,7 +334,7 @@ router.get('/:gachaId/delete', ensureAuthenticated, async function (req, res, ne
     .then(async (gacha) => {
       await Gacha.findAll({ include: [GachaCategory] })
         .then(gachas => {
-          res.status(201).json({
+          res.status(200).json({
             data: gachas.slice(startIndex, endIndex),
             currentPage: parseInt(pageNumber),
             totalPages: Math.ceil(gachas.length / pageSize),
@@ -388,40 +388,30 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
           // await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gift_list) })
           await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: num })
             .then(async gachaUser => {
-
               const scores = gift_list.map(score => ({
                 user_id: gachaUser.user_id,
                 gacha_id: gachaUser.gacha_id,
                 gacha_user_id: gachaUser.id,
                 score: score
               }));
-            
+
               await GachaScore.bulkCreate(scores);
             });
-
-              await User.findOne({ where: { id: user.id } })
-                .then(async (u) => {
-
-                  if (user) {
-
-                    await u.update({ point: u.point * 1 - gacha.point * num });
-                    res.status(201).json(u);
-
-                  }
-                })
-                .catch(err => {
-                  return next(err);
-                })
-
-            });
-
-
-
-        })
-        .catch(err => {
-          throw err;
-          return next(err);
-        })
+          await User.findOne({ where: { id: user.id } })
+            .then(async (u) => {
+              if (user) {
+                await u.update({ point: u.point * 1 - gacha.point * num });
+                res.status(200).json(u);
+              }
+            })
+            .catch(err => {
+              return next(err);
+            })
+        });
+    })
+    .catch(err => {
+      throw err;
+    })
 })
 
 router.get('/nowGetGacha', ensureAuthenticated, async function (req, res) {
@@ -432,15 +422,12 @@ router.get('/nowGetGacha', ensureAuthenticated, async function (req, res) {
       console.log(user.id)
       await GachaUser.findOne({ where: { user_id: user.id }, order: [['createdAt', 'DESC']], limit: 1 })
         .then(async (u) => {
-          res.status(201).json(u);
+          res.status(200).json(u);
         })
         .catch(err => {
           return next(err);
         })
-
-    }
-    )
-
+    })
 });
 
 router.get('/gifts/:userId/return/:giftId', ensureAuthenticated, async function (req, res, next) {
@@ -452,7 +439,7 @@ router.get('/gifts/:userId/return/:giftId', ensureAuthenticated, async function 
         .then(async (user) => {
           await user.update({ point: user.point + gift.gift_point })
             .then(user => {
-              res.status(201).json(user.point);
+              res.status(200).json(user.point);
             })
             .catch(err => {
               return next(err);
@@ -466,7 +453,7 @@ router.get('/gifts/:userId/return/:giftId', ensureAuthenticated, async function 
           //   }
           // })
           //   .then(gifts => {
-          //     res.status(201).json(gifts);
+          //     res.status(200).json(gifts);
           //   })
           //   .catch(err => {
           //     return next(err);
@@ -487,7 +474,7 @@ router.get('/gifts/:userId/deliver/:giftId', ensureAuthenticated, async function
     .then(async (gift) => {
       await gift.update({ status: 'delivering' })
         .then(gift => {
-          res.status(201).json(true);
+          res.status(200).json(true);
         })
         .catch(err => {
           return next(err);
@@ -501,7 +488,7 @@ router.get('/gifts/:userId/deliver/:giftId', ensureAuthenticated, async function
       //   }
       // })
       //   .then(gifts => {
-      //     res.status(201).json(gifts);
+      //     res.status(200).json(gifts);
       //   })
       //   .catch(err => {
       //     return next(err);
@@ -514,7 +501,7 @@ router.get('/gifts/:userId/deliver/:giftId', ensureAuthenticated, async function
 
 router.get('/:userId/histories/:status', ensureAuthenticated, async function (req, res, next) {
   const { userId, status } = req.params;
-  
+
   await GachaUser.findAll({
     where: { user_id: userId },
     include: [
@@ -530,7 +517,7 @@ router.get('/:userId/histories/:status', ensureAuthenticated, async function (re
     ]
   })
     .then(async (gifts) => {
-      res.status(201).json(gifts);
+      res.status(200).json(gifts);
     })
     .catch(err => {
       throw err;
@@ -552,7 +539,7 @@ router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res,
     }]
   })
     .then(async (gachaUsers) => {
-      res.status(201).json({
+      res.status(200).json({
         data: gachaUsers.slice(startIndex, endIndex),
         currentPage: parseInt(pageNumber),
         totalPages: Math.ceil(gachaUsers.length / pageSize),
@@ -561,7 +548,6 @@ router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res,
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 })
 
@@ -576,11 +562,10 @@ router.get('/histories', ensureAuthenticated, async function (req, res, next) {
     ]
   })
     .then(async (gifts) => {
-      res.status(201).json(gifts);
+      res.status(200).json(gifts);
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 })
 
@@ -595,11 +580,10 @@ router.get('/gifts/orders', ensureAuthenticated, async function (req, res, next)
     ]
   })
     .then(async (gifts) => {
-      res.status(201).json(gifts);
+      res.status(200).json(gifts);
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 })
 
@@ -618,11 +602,10 @@ router.get('/gifts/:userId/remain', ensureAuthenticated, async function (req, re
     }]
   })
     .then(async (gifts) => {
-      res.status(201).json(gifts);
+      res.status(200).json(gifts);
     })
     .catch(err => {
       throw err;
-      return next(err);
     })
 })
 
