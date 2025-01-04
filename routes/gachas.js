@@ -161,7 +161,12 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
 })
 
 router.get('/category/:category', async function (req, res, next) {
+  //check
   const category = req.params.category;
+  const badgs = req.params.badgs;
+  const key = req.params.key;
+  const order = req.params.sel_order;
+
   const pageNumber = req.query.page || 1;
   const pageSize = req.query.limit || 12;
   const startIndex = (pageNumber - 1) * pageSize;
