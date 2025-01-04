@@ -112,13 +112,8 @@ router.post('/register', async function (req, res, next) {
 
       } else {
 
-
-        // bcrypt.genSalt(10, async function (erro, salt) {
-
-        //   await bcrypt.hash(_user.password, salt, function (erro, hash) {
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-
+        const hashedPassword = await bcrypt.hash(_user.password, saltRounds);
         _user.password = hashedPassword;
 
         let token = jwt.sign(
@@ -129,7 +124,7 @@ router.post('/register', async function (req, res, next) {
 
         )
         console.log(hashedPassword);
-
+        
         User.create({ ..._user, _token: token })
           .then(user => {
             return res.json({
@@ -153,6 +148,7 @@ router.post('/register', async function (req, res, next) {
       }
     })
     .catch(err => {
+      console.log(err);
       return res.json({ error: "mail_edit_error" });
     })
 });
