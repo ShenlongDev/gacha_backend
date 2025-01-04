@@ -51,7 +51,7 @@ router.get('/payment', async (req, res) => {
     name: user.first_name,
   });
 
-  const { amount, userId, paymentMethodId, cardType } = Params;
+  const { amount, userId, paymentMethodId, cardType, couponid, coin } = Params;
 
   if (cardType == 'card') {
     try {
@@ -68,9 +68,19 @@ router.get('/payment', async (req, res) => {
           .then(async () => {
             if (user) {
               await user.update({
-                point: user.point * 1 + amount * 1,
-                deposit: user.deposit * 1 + amount * 1
+                point: user.point * 1 + coin * 1,
+                deposit: user.deposit * 1 + coin * 1
               });
+
+              console.log(couponid);
+            
+              let coupon = await Coupon.findOne({ where: { id: couponid } });
+              if(coupon){
+                await coupon.update({
+                  state: 2,
+                });
+              }
+
               res.status(201).json({
                 point: user.point,
                 deposit: user.deposit
