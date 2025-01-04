@@ -339,7 +339,7 @@ router.get('/:userId/coupon', async function (req, res, next) {
         return res.json({ msg: "no" });
       }
       else {
-       
+       console.log("ffff");
         return res.json({ msg: "ok", resaon: user });
         
       }
