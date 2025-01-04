@@ -8,9 +8,11 @@ const { Op } = require('sequelize');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 require('dotenv').config();
+const twilio = require('twilio');
+const axios = require('axios');
 
 const sendEmail = require('../emailService');
-const { Payment, User, Address, GachaUser, sequelize, Log } = require("../models");
+const { Payment, User, Address, GachaUser, sequelize, Log, Coupon  } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
@@ -102,7 +104,7 @@ router.post('/register', async function (req, res, next) {
   if (invalidFieldErrors) {
     return res.json({ error: "mail_type_error" });
   }
- 
+
   User.findOne({ where: { email: _user.email } })
     .then(async (user) => {
 
@@ -124,7 +126,7 @@ router.post('/register', async function (req, res, next) {
 
         )
         console.log(hashedPassword);
-        
+
         User.create({ ..._user, _token: token })
           .then(user => {
             return res.json({
@@ -197,6 +199,202 @@ router.post('/login', async function (req, res, next) {
     .catch(err => {
       return next(err);
     })
+})
+
+
+router.post('/:userId/phone', async function (req, res, next) {
+  const { first_name } = req.body || {};
+  const sms = randomString(6);
+
+  const userId = req.params.userId;
+  console.log(sms);
+
+  await User.findOne({ where: { id: userId } })
+    .then(async (user) => {
+      if (!user) {
+        let err = new TypedError('login error', 403, 'invalid_field', { message: "無効なユーザーIDです。" })
+        return next(err)
+      }
+      else {
+        await user.update({ phone_sms: sms, phone_number: first_name });
+
+        try {
+          const res1 = await axios.post('https://api.twilio.com/2010-04-01/Accounts/ACe3ba9075878948800c9e98e105319313/Messages.json',
+            new URLSearchParams({
+              To: first_name,
+              From: '+12343513500',
+              Body: sms
+            }), {
+            auth: {
+              username: 'ACe3ba9075878948800c9e98e105319313',
+              password: '0840a77b66195d7403f7aa057492de3f'
+            }
+          });
+
+          return res.json({ msg: "send" });
+
+        } catch (error) {
+          console.log(error);
+        }
+        // const accountSid = 'ACe3ba9075878948800c9e98e105319313';
+        // const authToken = '0840a77b66195d7403f7aa057492de3f';
+        // console.log(accountSid)
+        // const client = new twilio(accountSid, authToken);
+        // setTimeout(() => {
+        //   client.calls
+        //     .create({
+        //       to: '+815030007085',
+        //       from: '+817065718043',
+        //       url: 'http://demo.twilio.com/docs/voice.xml'
+        //     })
+        //     .then(call => console.log(`Call SID: ${call.sid}`))
+        //     .catch(error => console.error(error));
+        // }, 30000);
+        
+        return res.json({ msg: "send" });
+      }
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+
+})
+
+router.post('/:userId/verify', async function (req, res, next) {
+  const { last_name } = req.body || {};
+  const userId = req.params.userId;
+
+  await User.findOne({ where: { id: userId, phone_sms: last_name } })
+    .then(async (user) => {
+      if (!user) {
+        return res.json({ msg: "no" });
+      }
+      else {
+        await user.update({ phone_verify1: 1 });
+
+        return res.json({ msg: "ok" });
+
+      }
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+
+})
+
+router.post('/:userId/exit', async function (req, res, next) {
+  const { first_name } = req.body || {};
+  const userId = req.params.userId;
+
+  await User.findOne({ where: { id: userId } })
+    .then(async (user) => {
+      if (!user) {
+        return res.json({ msg: "no" });
+      }
+      else {
+        await user.update({ is_exit: true, reason: first_name });
+
+        return res.json({ msg: "ok" });
+
+      }
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+
+})
+
+router.get('/:userId/exit', async function (req, res, next) {
+  const { first_name } = req.body || {};
+  const userId = req.params.userId;
+
+  await User.findOne({ where: { id: userId, is_exit: true } })
+    .then(async (user) => {
+      if (!user) {
+        return res.json({ msg: "no" });
+      }
+      else {
+
+        return res.json({ msg: "ok", resaon: user.reason });
+
+      }
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+})
+
+router.get('/:userId/coupon', async function (req, res, next) {
+
+  
+  const userId = req.params.userId;
+  
+  await Coupon.findAll({ where: { user_id: userId, state: 1 } })
+    .then(async (user) => {
+      if (!user) {
+        return res.json({ msg: "no" });
+      }
+      else {
+       
+        return res.json({ msg: "ok", resaon: user });
+        
+      }
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+})
+
+router.post('/:userId/coupon', async function (req, res, next) {
+
+  const { first_name } = req.body || {};
+  const userId = req.params.userId;
+  
+  await Coupon.findOne({ where: { user_id: userId, text: first_name } })
+    .then(async (user) => {
+      if (!user) {
+        return res.json({ msg: "no" });
+      }
+      else {
+        
+        await user.update({ state: 1 });
+
+        return res.json({ msg: "ok"});
+
+      }
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+})
+
+
+router.get('/:userId/verify', async function (req, res, next) {
+  const { last_name } = req.body || {};
+  const userId = req.params.userId;
+
+  await User.findOne({ where: { id: userId, phone_verify1: 1 } })
+    .then(async (user) => {
+      if (!user) {
+        return res.json({ msg: "no" });
+      }
+      else {
+
+        return res.json({ msg: "ok", phone: user.phone_number });
+
+      }
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+
 })
 
 router.get('/', ensureAuthenticated, async function (req, res, next) {
@@ -338,7 +536,7 @@ router.post('/:userId/address/add', ensureAuthenticated, async function (req, re
 })
 
 router.get('/addresses/:id', ensureAuthenticated, async function (req, res, next) {
-  console.log("ffff");
+
   let id = req.params.id;
   await Address.findOne({
     where: {
@@ -468,6 +666,8 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
       return next(err);
     })
 })
+
+
 
 router.get('/payments/all', ensureAuthenticated, async function (req, res, next) {
   await Payment.findAll()
