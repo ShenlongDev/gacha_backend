@@ -12,7 +12,7 @@ const twilio = require('twilio');
 const axios = require('axios');
 
 const sendEmail = require('../emailService');
-const { Payment, User, Address, GachaUser, sequelize, Log, Coupon  } = require("../models");
+const { Payment, User, Address, GachaUser, sequelize, Log, Coupon, GachaScore } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
@@ -546,7 +546,6 @@ router.post('/:userId/address/add', ensureAuthenticated, async function (req, re
 })
 
 router.get('/addresses/:id', ensureAuthenticated, async function (req, res, next) {
-
   let id = req.params.id;
   await Address.findOne({
     where: {
