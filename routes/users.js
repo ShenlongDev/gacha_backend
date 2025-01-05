@@ -412,26 +412,8 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
-  await User.findAll(
-    {
-      where: {
-        role: {
-          [Op.ne]: 'admin'
-        }
-      },
-      include: [
-        {
-          model: GachaScore,
-          required: false,
-          where: {
-            status: 'delivering'
-          }
-        }
-      ]
-    }
-  )
+  await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
     .then(users => {
-      // console.log(users);
       res.status(201).json({
         data: users.slice(startIndex, endIndex),
         currentPage: parseInt(pageNumber),
@@ -440,27 +422,6 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
       });
     })
     .catch(err => {
-      console.log(err);
-      return next(err);
-    })
-})
-
-router.get('/all', ensureAuthenticated, async function (req, res, next) {
-  await User.findAll(
-    // {
-    //   where: {
-    //     role: {
-    //       [Op.ne]: 'admin'
-    //     }
-    //   }
-    // }
-  )
-    .then(users => {
-      // console.log(users);
-      res.status(200).json(users);
-    })
-    .catch(err => {
-      console.log(err);
       return next(err);
     })
 })
@@ -531,7 +492,7 @@ router.post('/:userId/avatar', ensureAuthenticated, upload.single('image'), asyn
 router.get('/:userId/delete', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
+  const pageSize = req.query.limit || 5;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await User.destroy({
@@ -540,24 +501,7 @@ router.get('/:userId/delete', ensureAuthenticated, async function (req, res, nex
     }
   })
     .then(async (user) => {
-      await User.findAll(
-        {
-          where: {
-            role: {
-              [Op.ne]: 'admin'
-            }
-          },
-          include: [
-            {
-              model: GachaScore,
-              required: false,
-              where: {
-                status: 'delivering'
-              }
-            }
-          ]
-        }
-      )
+      await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
         .then(users => {
           res.status(201).json({
             data: users.slice(startIndex, endIndex),
@@ -602,10 +546,7 @@ router.post('/:userId/address/add', ensureAuthenticated, async function (req, re
 })
 
 router.get('/addresses/:id', ensureAuthenticated, async function (req, res, next) {
-<<<<<<< HEAD
 
-=======
->>>>>>> super
   let id = req.params.id;
   await Address.findOne({
     where: {
@@ -756,34 +697,22 @@ router.get('/:userId/payments', ensureAuthenticated, async function (req, res, n
       id: userId
     }
   })
-  .then(async (user) => {
-    // await Payment.findAll({ where: { user_id: userId, status: "deposit" } })
-    await Payment.findAll()
-      .then(payments => {
-        res.status(200).json(payments);
-      })
-      .catch(err => {
-        console.error(err);
-        throw err;
-        return next(err);
-      });
-  })
+    .then(async (user) => {
+      // await Payment.findAll({ where: { user_id: userId, status: "deposit" } })
+      await Payment.findAll()
+        .then(payments => {
+          res.status(200).json(payments);
+        })
+        .catch(err => {
+          console.error(err);
+          throw err;
+          return next(err);
+        });
+    })
     .catch(err => {
       throw err;
       return next(err);
     })
-})
-
-router.get('/payments/:userId', ensureAuthenticated, async function (req, res, next) {
-  let { userId } = req.params;
-  await Payment.findAll({ where: { user_id: userId } })
-    .then(payments => {
-      res.status(200).json(payments);
-    })
-    .catch(err => {
-      console.error(err);
-      return next(err);
-    });
 })
 
 router.post('/forgot-password', async (req, res) => {
