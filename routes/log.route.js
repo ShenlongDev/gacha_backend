@@ -129,7 +129,7 @@ router.get('/:userId/all', ensureAuthenticated, async function (req, res, next) 
 // router.get('/:logId/delete', ensureAuthenticated, async function (req, res, next) {
 //   let logId = req.params.logId;
 //   const pageNumber = req.query.page || 1;
-//   const pageSize = req.query.limit || 5;
+//   const pageSize = req.query.limit || 10;
 //   const startIndex = (pageNumber - 1) * pageSize;
 //   const endIndex = pageNumber * pageSize;
 //   await Log.destroy({
