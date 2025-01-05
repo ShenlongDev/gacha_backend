@@ -530,7 +530,7 @@ router.post('/:userId/avatar', ensureAuthenticated, upload.single('image'), asyn
 router.get('/:userId/delete', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
+  const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await User.destroy({
@@ -713,8 +713,6 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
       return next(err);
     })
 })
-
-
 
 router.get('/payments/all', ensureAuthenticated, async function (req, res, next) {
   await Payment.findAll()
