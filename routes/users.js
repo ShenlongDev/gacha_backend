@@ -444,6 +444,26 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
     })
 })
 
+router.get('/all', ensureAuthenticated, async function (req, res, next) {
+  await User.findAll(
+    // {
+    //   where: {
+    //     role: {
+    //       [Op.ne]: 'admin'
+    //     }
+    //   }
+    // }
+  )
+    .then(users => {
+      // console.log(users);
+      res.status(200).json(users);
+    })
+    .catch(err => {
+      console.log(err);
+      return next(err);
+    })
+})
+
 router.get('/:userId', ensureAuthenticated, async function (req, res, next) {
   const userId = req.params.userId;
   await User.findOne({ where: { id: userId } })
