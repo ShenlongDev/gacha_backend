@@ -73,11 +73,10 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
 
   await Coupon.create(data)
     .then(async coupon => {
-      res.status(201).json(coupon);
       
       await User.findByPk(coupon.user_id)
       .then(async user => {
-
+        
         const transporter = nodemailer.createTransport({
           host: process.env.MAIL_HOST,
           port: process.env.MAIL_PORT,
@@ -100,7 +99,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
 
         await transporter.sendMail(mailOptions);
 
-        res.status(200).json({ message: 'Password reset email sent!' });
+        res.status(201).json(coupon);
       })
     })
     .catch(err => {
