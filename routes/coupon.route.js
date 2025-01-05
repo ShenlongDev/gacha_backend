@@ -77,7 +77,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
       
       await User.findByPk(coupon.user_id)
       .then(async user => {
-
+        
         const transporter = nodemailer.createTransport({
           host: process.env.MAIL_HOST,
           port: process.env.MAIL_PORT,
