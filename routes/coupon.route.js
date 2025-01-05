@@ -70,10 +70,10 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
     return next(err)
   }
   data.text = randomString(10);
+  data.state = 0;
 
   await Coupon.create(data)
     .then(async coupon => {
-      res.status(201).json(coupon);
       
       await User.findByPk(coupon.user_id)
       .then(async user => {
@@ -100,7 +100,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
 
         await transporter.sendMail(mailOptions);
 
-        res.status(200).json({ message: 'Password reset email sent!' });
+        res.status(201).json(coupon);
       })
     })
     .catch(err => {
