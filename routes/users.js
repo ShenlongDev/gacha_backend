@@ -733,19 +733,19 @@ router.get('/:userId/payments', ensureAuthenticated, async function (req, res, n
     }
   })
     .then(async (user) => {
-      // await Payment.findAll({ where: { user_id: userId, status: "deposit" } })
-      await Payment.findAll()
+      console.log('user', user)
+      await Payment.findAll({ where: { user_id: userId } })
+      // await Payment.findAll()
         .then(payments => {
           res.status(200).json(payments);
         })
         .catch(err => {
           console.error(err);
-          throw err;
           return next(err);
         });
     })
     .catch(err => {
-      throw err;
+      console.error(err);
       return next(err);
     })
 })
