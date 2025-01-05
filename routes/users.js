@@ -412,7 +412,25 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
-  await User.findAll({ where: { role: { [Op.ne]: 'admin' } } })
+  // this is added part.
+  await User.findAll(
+    {
+      where: {
+        role: {
+          [Op.ne]: 'admin'
+        }
+      },
+      include: [
+        {
+          model: GachaScore,
+          required: false,
+          where: {
+            status: 'delivering'
+          }
+        }
+      ]
+    }
+  )
     .then(users => {
       res.status(201).json({
         data: users.slice(startIndex, endIndex),
