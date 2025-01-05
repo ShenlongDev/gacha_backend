@@ -35,6 +35,9 @@ module.exports = (sequelize, Sequelize) => {
     },
     limit: {
       type: Sequelize.INTEGER,
+    },
+    cnt: {
+      type: Sequelize.INTEGER,
     }
   },
     {

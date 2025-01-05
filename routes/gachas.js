@@ -161,9 +161,14 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
 })
 
 router.get('/category/:category', async function (req, res, next) {
+  //check
   const category = req.params.category;
+  const badgs = req.params.badgs;
+  const key = req.params.key;
+  const order = req.params.sel_order;
+
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
+  const pageSize = req.query.limit || 12;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
 
@@ -178,8 +183,7 @@ router.get('/category/:category', async function (req, res, next) {
         });
       })
       .catch(err => {
-        throw err;
-        return next(err);
+        throw err;      
       })
   }
   else if (category == 'popular') {
@@ -192,15 +196,14 @@ router.get('/category/:category', async function (req, res, next) {
     })
       .then(gachas => {
         res.status(201).json({
-          data: gachas.slice(0, 10),
+          data: gachas.slice(startIndex, endIndex),
           currentPage: parseInt(1),
           totalPages: 1,
           totalRecords: gachas.length
         });
       })
       .catch(err => {
-        throw err;
-        return next(err);
+        throw err;      
       })
   }
   else if (category == 'new') {
@@ -212,7 +215,7 @@ router.get('/category/:category', async function (req, res, next) {
     })
       .then(gachas => {
         res.status(201).json({
-          data: gachas.slice(0, 10),
+          data: gachas.slice(startIndex, endIndex),
           currentPage: parseInt(1),
           totalPages: 1,
           totalRecords: gachas.length

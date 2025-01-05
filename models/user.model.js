@@ -72,6 +72,22 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DATE,
       allowNull: true,
     },
+    phone_sms: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    phone_verify1: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
+    is_exit: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
+    reason: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   },
     {
       timestamps: false
