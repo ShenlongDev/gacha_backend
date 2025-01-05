@@ -70,6 +70,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
     return next(err)
   }
   data.text = randomString(10);
+  data.state = 0;
 
   await Coupon.create(data)
     .then(async coupon => {
