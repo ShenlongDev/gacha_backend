@@ -39,7 +39,6 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
 router.post('/:status', ensureAuthenticated, async function (req, res, next) {
     const { status } = req.params;
     const { ids, userId } = req.body;
-    
     await GachaScore.update(
         { status: status },
         { where: { id: { [Op.in]: ids } } }
@@ -66,6 +65,21 @@ router.post('/:status', ensureAuthenticated, async function (req, res, next) {
             return next(err);
         });
         
+})
+
+router.post('/:status/confirm', ensureAuthenticated, async function (req, res, next) {
+    const { status } = req.params;
+    const { ids, userId } = req.query;
+    await GachaScore.update(
+        { status: status },
+        { where: { id: { [Op.in]: ids } } }
+    )
+        .then(async () => {
+            res.status(200).json({ message: 'Status updated successfully!' });
+        })
+        .catch((err) => {
+            return next(err);
+        });
 })
 
 router.get('/:gachaUserId', ensureAuthenticated, async function (req, res, next) {

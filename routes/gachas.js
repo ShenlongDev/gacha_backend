@@ -168,7 +168,7 @@ router.get('/category/:category', async function (req, res, next) {
   const order = req.params.sel_order;
 
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 12;
+  const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
 
@@ -227,10 +227,15 @@ router.get('/category/:category', async function (req, res, next) {
   }
   else {
     await Gacha.findAll({
-      where: { category_id: category }, include: [{
-        model: GachaCategory,
-        attributes: ['name']
-      }]
+      where: {
+        category_id: category
+      },
+      include: [
+        {
+          model: GachaCategory,
+          attributes: ['name']
+        }
+      ]
     })
       .then(gachas => {
         res.status(201).json({
@@ -327,7 +332,7 @@ router.post('/:gachaId/image', ensureAuthenticated, upload.single('image'), asyn
 router.get('/:gachaId/delete', ensureAuthenticated, async function (req, res, next) {
   let gachaId = req.params.gachaId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
+  const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await Gacha.destroy({
@@ -538,7 +543,26 @@ router.get('/:userId/histories/:status', ensureAuthenticated, async function (re
       res.status(201).json(gifts);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
+      return next(err);
+    })
+})
+
+router.get('/:userId/histories', ensureAuthenticated, async function (req, res, next) {
+  const { userId } = req.params;
+  
+  await GachaScore.findAll({
+    where: {
+      user_id: userId,
+      status: 'delivering'
+    },
+    // order:[['createdAt', 'DESC']],
+  })
+    .then(async (gifts) => {
+      res.status(201).json(gifts);
+    })
+    .catch(err => {
+      console.log(err);
       return next(err);
     })
 })
@@ -572,13 +596,7 @@ router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res,
 
 router.get('/histories', ensureAuthenticated, async function (req, res, next) {
   await GachaUser.findAll({
-    include: [
-      {
-        model: User,
-        attributes: ['first_name', 'last_name']
-      },
-      { model: Address },
-    ]
+     
   })
     .then(async (gifts) => {
       res.status(201).json(gifts);

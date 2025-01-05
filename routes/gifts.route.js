@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const ensureAuthenticated = require('../modules/ensureAuthenticated');
-const { Gift } = require("../models");
+const { Gift, GachaScore, GachaUser, User, sequelize } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
@@ -21,7 +21,7 @@ const upload = multer({ storage: storage });
 // GET /gifts
 router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
+  const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await Gift.findAll()
@@ -34,6 +34,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
       });
     })
     .catch(err => {
+      console.log(err);
       return next(err);
     })
 })
@@ -122,7 +123,7 @@ router.post('/:giftId/image', ensureAuthenticated, upload.single('image'), async
 router.get('/:giftId/delete', ensureAuthenticated, async function (req, res, next) {
   let giftId = req.params.giftId;
   const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 5;
+  const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
   await Gift.destroy({
@@ -145,5 +146,62 @@ router.get('/:giftId/delete', ensureAuthenticated, async function (req, res, nex
       return next(err);
     })
 })
+
+// router.get('/deliveries', ensureAuthenticated, async function (req, res, next) {
+//   const pageNumber = req.query.page || 1;
+//   const pageSize = req.query.limit || 10;
+//   const startIndex = (pageNumber - 1) * pageSize;
+//   const endIndex = pageNumber * pageSize;
+//   await GachaScore.findAll()
+//     .then(gachaScores => {
+//       res.status(200).json({
+//         data: gachaScores.slice(startIndex, endIndex),
+//         currentPage: parseInt(pageNumber),
+//         totalPages: Math.ceil(gachaScores.length / pageSize),
+//         totalRecords: gachaScores.length
+//       });
+//     })
+//     .catch(err => {
+//       return next(err);
+//     })
+// })
+
+// router.get('/deliveries', ensureAuthenticated, async function (req, res, next) {
+//   try {
+//     const pageNumber = req.query.page || 1;
+//     const pageSize = req.query.limit || 10;
+//     const startIndex = (pageNumber - 1) * pageSize;
+//     const endIndex = pageNumber * pageSize;
+
+//     await GachaUser.findAll({
+//       attributes: [
+//         'user_id',
+//         [sequelize.fn('COUNT', sequelize.col('id')), 'gacha_cnt'],
+//         [sequelize.fn('SUM', sequelize.col('gift_info')), 'gift_cnt'],
+//         [sequelize.fn('SUM', sequelize.col('gift_point')), 'totalGiftPoints']
+//       ],
+//       group: ['user_id'],
+//       raw: true // Return plain JSON objects
+//     })
+//       .then(gachaUsers => {
+//         console.log(gachaUsers);
+//         res.status(200).json({
+//           data: gachaUsers.slice(startIndex, endIndex),
+//           currentPage: parseInt(pageNumber),
+//           totalPages: Math.ceil(gachaUsers.length / pageSize),
+//           totalRecords: gachaUsers.length
+//         });
+//       })
+//       .catch(err => {
+//         console.log("Whoops! This is an error.", err);
+//         return next(err);
+//       });
+//   } catch (err) {
+//     console.log("Whoops! This is an error1.", err);
+//     return next(err);
+//   }
+// });
+
+
 
 module.exports = router;
