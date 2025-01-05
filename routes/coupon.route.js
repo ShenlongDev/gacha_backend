@@ -104,7 +104,8 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
       })
     })
     .catch(err => {
-      throw err;
+      console.log(err);
+      res.status(500).json(err);
     })
 })
 
