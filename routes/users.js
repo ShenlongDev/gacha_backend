@@ -412,6 +412,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
   const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
+  // this is added part.
   await User.findAll(
     {
       where: {
