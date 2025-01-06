@@ -841,5 +841,24 @@ router.post('/reset-password/:token', async (req, res) => {
   }
 });
 
+router.post('/:userId/phone', async function (req, res, next) {
+
+  const { line_id } = req.body || {};
+  const userId = req.params.userId;
+
+  await User.findOne({ where: { id: userId } })
+    .then(async (user) => {
+      await user.update({
+        line_id: line_id,       
+      });
+      return res.json({ msg: "ok" });
+    })
+    .catch(err => {
+      return next(err);
+    })
+
+
+})
+
 
 module.exports = router;

@@ -88,6 +88,10 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    line_id: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   },
     {
       timestamps: false
