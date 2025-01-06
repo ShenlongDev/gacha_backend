@@ -841,7 +841,7 @@ router.post('/reset-password/:token', async (req, res) => {
   }
 });
 
-router.post('/:userId/phone', async function (req, res, next) {
+router.post('/:userId/linecheck', async function (req, res, next) {
 
   const { line_id } = req.body || {};
   const userId = req.params.userId;
