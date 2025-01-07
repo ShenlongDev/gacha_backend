@@ -95,7 +95,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
           subject: 'クーポンのお知らせ',
           text: `下記のコードからクーポンを確認してください。`,
           html: `<p>クーポンコード：${coupon.text}</p>
-                <p>上記クーポンの有効期間は：${coupon.expire}　までです。</p>`,
+                <p>上記クーポンの有効期間は：${coupon.expire.toLocaleString()}　までです。</p>`,
         };
 
         await transporter.sendMail(mailOptions);
