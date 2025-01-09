@@ -19,12 +19,33 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // GET /notifications
+// router.get('/', ensureAuthenticated, async function (req, res, next) {
+//   await Notification.findAll()
+//     .then(notifications => {
+//       res.status(200).json(notifications);
+//     })
+//     .catch(err => {
+//       return next(err);
+//     })
+// })
+
 router.get('/', ensureAuthenticated, async function (req, res, next) {
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
+
   await Notification.findAll()
     .then(notifications => {
-      res.status(200).json(notifications);
+      res.status(200).json({
+        data: notifications.slice(startIndex, endIndex),
+        currentPage: parseInt(pageNumber),
+        totalPages: Math.ceil(notifications.length / pageSize),
+        totalRecords: notifications.length
+      });
     })
     .catch(err => {
+      console.log(err);
       return next(err);
     })
 })
@@ -32,20 +53,20 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
 router.post('/add', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('title', 'タイトルは必須です。').notEmpty();
-  req.checkBody('content', 'コンテンツは必要です。').notEmpty();
+  req.checkBody('content', 'コンテンツは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
       errors: missingFieldErrors,
     })
-    throw err;
+    console.log(err);
   }
   await Notification.create(data)
     .then(notification => {
       res.status(201).json(notification);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
     })
 })
 
@@ -63,7 +84,7 @@ router.get('/:notificationId/item', async function (req, res, next) {
 router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('title', 'タイトルは必須です。').notEmpty();
-  req.checkBody('content', 'コンテンツは必要です。').notEmpty();
+  req.checkBody('content', 'コンテンツは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -80,7 +101,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
       res.status(200).json(notification);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
     })
 })
 
@@ -93,12 +114,17 @@ router.post('/:notificationId/image', ensureAuthenticated, upload.single('image'
       res.json({ imageUrl: `uploads/${req.file.filename}` });
     })
     .catch(err => {
-      throw err;
+      console.log(err);
     })
 })
 
 router.get('/:notificationId/delete', ensureAuthenticated, async function (req, res, next) {
   let notificationId = req.params.notificationId;
+  const pageNumber = req.query.page || 1;
+  const pageSize = req.query.limit || 10;
+  const startIndex = (pageNumber - 1) * pageSize;
+  const endIndex = pageNumber * pageSize;
+
   await Notification.destroy({
     where: {
       id: notificationId
@@ -107,7 +133,12 @@ router.get('/:notificationId/delete', ensureAuthenticated, async function (req, 
     .then(async () => {
       await Notification.findAll()
         .then(notifications => {
-          res.status(200).json(notifications);
+          res.status(200).json({
+            data: notifications.slice(startIndex, endIndex),
+            currentPage: parseInt(pageNumber),
+            totalPages: Math.ceil(notifications.length / pageSize),
+            totalRecords: notifications.length
+          });
         })
     })
     .catch(err => {

@@ -12,7 +12,7 @@ const twilio = require('twilio');
 const axios = require('axios');
 
 const sendEmail = require('../emailService');
-const { Payment, User, Address, GachaUser, sequelize, Log, Coupon, GachaScore } = require("../models");
+const { Payment, User, Address, GachaUser, sequelize, Log, Coupon, GachaScore, Gacha } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
@@ -73,9 +73,9 @@ router.get('/payment', async (req, res) => {
               });
 
               console.log(couponid);
-            
+
               let coupon = await Coupon.findOne({ where: { id: couponid } });
-              if(coupon){
+              if (coupon) {
                 await coupon.update({
                   state: 2,
                 });
@@ -178,7 +178,7 @@ router.post('/login', async function (req, res, next) {
         return next(err);
       }
       bcrypt.compare(password, user.password, function (err, isMatch) {
-        if (err) throw err;
+        if (err) console.log(err);
         if (isMatch) {
           let token = jwt.sign(
             { email: email },
@@ -260,7 +260,7 @@ router.post('/:userId/phone', async function (req, res, next) {
         //     .then(call => console.log(`Call SID: ${call.sid}`))
         //     .catch(error => console.error(error));
         // }, 30000);
-        
+
         return res.json({ msg: "send" });
       }
     })
@@ -340,18 +340,18 @@ router.get('/:userId/exit', async function (req, res, next) {
 
 router.get('/:userId/coupon', async function (req, res, next) {
 
-  
+
   const userId = req.params.userId;
-  
+
   await Coupon.findAll({ where: { user_id: userId, state: 1 } })
     .then(async (user) => {
       if (!user) {
         return res.json({ msg: "no" });
       }
       else {
-       console.log("ffff");
+        console.log("ffff");
         return res.json({ msg: "ok", resaon: user });
-        
+
       }
     })
     .catch(err => {
@@ -364,17 +364,17 @@ router.post('/:userId/coupon', async function (req, res, next) {
 
   const { first_name } = req.body || {};
   const userId = req.params.userId;
-  
+
   await Coupon.findOne({ where: { user_id: userId, text: first_name } })
     .then(async (user) => {
       if (!user) {
         return res.json({ msg: "no" });
       }
       else {
-        
+
         await user.update({ state: 1 });
 
-        return res.json({ msg: "ok"});
+        return res.json({ msg: "ok" });
 
       }
     })
@@ -415,11 +415,11 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
   // this is added part.
   await User.findAll(
     {
-      where: {
-        role: {
-          [Op.ne]: 'admin'
-        }
-      },
+      // where: {
+      //   role: {
+      //     [Op.ne]: 'admin'
+      //   }
+      // },
       include: [
         {
           model: GachaScore,
@@ -427,6 +427,17 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
           where: {
             status: 'delivering'
           }
+        },
+        {
+          model: Address,
+        },
+        {
+          model: GachaUser,
+          include: [
+            {
+              model: Gacha
+            }
+          ]
         }
       ]
     }
@@ -455,7 +466,6 @@ router.get('/all', ensureAuthenticated, async function (req, res, next) {
     // }
   )
     .then(users => {
-      // console.log(users);
       res.status(200).json(users);
     })
     .catch(err => {
@@ -520,7 +530,7 @@ router.post('/:userId/avatar', ensureAuthenticated, upload.single('image'), asyn
         res.json({ imageUrl: `uploads/${req.file.filename}` });
       })
       .catch(err => {
-        throw err;
+        console.log(err);
       })
   } catch (err) {
     return next(err);
@@ -599,9 +609,7 @@ router.get('/addresses/:id', ensureAuthenticated, async function (req, res, next
 })
 
 router.post('/addresses/:id/edit', ensureAuthenticated, async function (req, res, next) {
-
   let { id } = req.params;
-  console.log(req.body);
 
   await Address.findOne({
     where: {
@@ -609,11 +617,7 @@ router.post('/addresses/:id/edit', ensureAuthenticated, async function (req, res
     }
   })
     .then(async (address) => {
-
-
-
       await address.update(req.body);
-
       res.status(201).json(address);
     })
     .catch(err => {
@@ -685,7 +689,7 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
             res.status(201).json(user.point);
           })
           .catch(err => {
-            throw err;
+            console.log(err);
             return next(err);
           })
 
@@ -697,19 +701,17 @@ router.get('/:userId/point/:amount/charge', ensureAuthenticated, async function 
             res.status(201).json(log);
           })
           .catch(err => {
-            throw err;
+            console.log(err);
             return next(err);
           })
       })
         .catch(err => {
-          console.error(err);
-          throw err;
+          console.log(err);
           return next(err);
         });
-
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
@@ -721,7 +723,7 @@ router.get('/payments/all', ensureAuthenticated, async function (req, res, next)
     })
     .catch(err => {
       console.error(err);
-      throw err;
+      console.log(err);
     });
 })
 
@@ -735,7 +737,7 @@ router.get('/:userId/payments', ensureAuthenticated, async function (req, res, n
     .then(async (user) => {
       console.log('user', user)
       await Payment.findAll({ where: { user_id: userId } })
-      // await Payment.findAll()
+        // await Payment.findAll()
         .then(payments => {
           res.status(200).json(payments);
         })
@@ -839,6 +841,41 @@ router.post('/reset-password/:token', async (req, res) => {
     console.error(error);
     return res.json({ error: "expired" });
   }
+});
+
+router.post('/:userId/linecheck', async function (req, res, next) {
+
+  const { line_id } = req.body || {};
+  const userId = req.params.userId;
+
+  await User.findOne({ where: { id: userId } })
+    .then(async (user) => {
+      await user.update({
+        line_id: line_id,
+      });
+      return res.json({ msg: "ok" });
+    })
+    .catch(err => {
+      return next(err);
+    })
+});
+
+router.post('/assign/role', async function (req, res, next) {
+  const { userId, role } = req.query;
+  console.log(userId, role);
+  await User.findByPk(userId)
+  .then(async user => {
+    await user.update({
+      role: role
+    })
+    .then(user => {
+      res.status(201).json(user);
+    })
+    .catch(err => {
+      console.log(err);
+      return next(err);
+    })
+  })
 });
 
 

@@ -17,14 +17,14 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
 router.post('/add', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('text', 'テキストは必須です。').notEmpty();
-  req.checkBody('color', 'バックカラーは必要です。').notEmpty();
-  req.checkBody('font_color', 'フォントカラーは必要です。').notEmpty();
+  req.checkBody('color', 'バックカラーは必須です。').notEmpty();
+  req.checkBody('font_color', 'フォントカラーは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
       errors: missingFieldErrors,
     })
-    throw err;
+    console.log(err);
     return next(err)
   }
   await Badge.create(data)
@@ -32,7 +32,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
       res.status(201).json(badge);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
@@ -51,8 +51,8 @@ router.get('/:badgeId/item', async function (req, res, next) {
 router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('text', 'テキストは必須です。').notEmpty();
-  req.checkBody('color', 'バックカラーは必要です。').notEmpty();
-  req.checkBody('font_color', 'フォントカラーは必要です。').notEmpty();
+  req.checkBody('color', 'バックカラーは必須です。').notEmpty();
+  req.checkBody('font_color', 'フォントカラーは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -70,7 +70,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
       res.status(200).json(badge);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })

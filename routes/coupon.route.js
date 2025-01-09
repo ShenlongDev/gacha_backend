@@ -3,6 +3,9 @@ var router = express.Router();
 const ensureAuthenticated = require('../modules/ensureAuthenticated');
 const { Coupon, User, sequelize } = require("../models");
 const nodemailer = require('nodemailer');
+
+const TypedError = require('../modules/ErrorHandler')
+
 const crypto = require('crypto');
 require('dotenv').config();
 
@@ -58,9 +61,9 @@ router.get('/all', ensureAuthenticated, async function (req, res, next) {
 
 router.post('/add', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
-  // req.checkBody('text', 'クーポン名は必須です。').notEmpty();
-  req.checkBody('user_id', 'クーポンユーザーは必要です。').notEmpty();
-  req.checkBody('expire', 'クーポン有効期間は必要です。').notEmpty();
+  req.checkBody('user_id', 'クーポンユーザーは必須です。').notEmpty();
+  req.checkBody('expire', 'クーポン有効期間は必須です。').notEmpty();
+  req.checkBody('point', 'クーポンポイントは必須です。').notEmpty();
   
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
@@ -69,44 +72,66 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
     })
     return next(err)
   }
-  data.text = randomString(10);
-  data.state = 0;
 
-  await Coupon.create(data)
-    .then(async coupon => {
-      
-      await User.findByPk(coupon.user_id)
-      .then(async user => {
-        
-        const transporter = nodemailer.createTransport({
-          host: process.env.MAIL_HOST,
-          port: process.env.MAIL_PORT,
-          secure: false, // Use true for port 465
-          auth: {
-            user: process.env.MAIL_USERNAME,
-            pass: process.env.MAIL_PASSWORD,
-          },
-        });
+  if (data.user_id == 0) {
+    try {
+      const users = await User.findAll();
   
-        const mailOptions = {
-          // from: 'GachaX <no-reply@yourapp.com>',
-          from: `GachaX <${process.env.MAIL_USERNAME}>`,
-          to: user.email,
-          subject: 'クーポンのお知らせ',
-          text: `下記のコードからクーポンを確認してください。`,
-          html: `<p>クーポンコード：${coupon.text}</p>
-                <p>上記クーポンの有効期間は：${coupon.expire.toLocaleString()}　までです。</p>`,
-        };
-
-        await transporter.sendMail(mailOptions);
-
-        res.status(201).json(coupon);
+      const coupons = users.map(user => ({
+        user_id: user.id,
+        text: randomString(10),
+        expire: data.expire,
+        point: data.point,
+        state: 0,
+      }));
+  
+      const createdCoupons = await Coupon.bulkCreate(coupons);
+  
+      res.status(201).json(createdCoupons);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'An error occurred while creating coupons.' });
+    }
+  } else {
+    data.text = randomString(10);
+    data.state = 0;
+    
+    await Coupon.create(data)
+      .then(async coupon => {
+        
+        await User.findByPk(coupon.user_id)
+          .then(async user => {
+            
+            const transporter = nodemailer.createTransport({
+              host: process.env.MAIL_HOST,
+              port: process.env.MAIL_PORT,
+              secure: false, // Use true for port 465
+              auth: {
+                user: process.env.MAIL_USERNAME,
+                pass: process.env.MAIL_PASSWORD,
+              },
+            });
+      
+            const mailOptions = {
+              // from: 'GachaX <no-reply@yourapp.com>',
+              from: `GachaX <${process.env.MAIL_USERNAME}>`,
+              to: user.email,
+              subject: 'クーポンのお知らせ',
+              text: `下記のコードからクーポンを確認してください。`,
+              html: `<p>クーポンコード：${coupon.text}</p>
+                    <p>上記クーポンの有効期間は：${coupon.expire.toLocaleString()}　までです。</p>`,
+            };
+    
+            await transporter.sendMail(mailOptions);
+    
+            res.status(201).json(coupon);
+          })
       })
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json(err);
-    })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json(err);
+      })
+  }
 })
 
 router.get('/:couponId/delete', ensureAuthenticated, async function (req, res, next) {

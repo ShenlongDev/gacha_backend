@@ -72,7 +72,7 @@ class getGiftCards {
         //     console.log(data);
         //   })
         //   .catch(err => {
-        //     throw err;
+        //     console.log(err);
         //   })
 
         var items = amazonData.SearchResult.Items;
@@ -183,7 +183,7 @@ router.get('/category/:category', async function (req, res, next) {
         });
       })
       .catch(err => {
-        throw err;      
+        console.log(err);      
       })
   }
   else if (category == 'popular') {
@@ -203,7 +203,7 @@ router.get('/category/:category', async function (req, res, next) {
         });
       })
       .catch(err => {
-        throw err;      
+        console.log(err);      
       })
   }
   else if (category == 'new') {
@@ -265,30 +265,30 @@ router.get('/:gachaId/item', async function (req, res, next) {
 router.post('/add', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', '名前は必須です。').notEmpty();
-  req.checkBody('point', 'ポイントが必要です。').notEmpty();
-  req.checkBody('win_probability', '確率トが必要です。').notEmpty();
+  req.checkBody('point', 'ポイントが必須です。').notEmpty();
+  req.checkBody('win_probability', '確率トが必須です。').notEmpty();
   req.checkBody('category_id', ' カテゴリーは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
       errors: missingFieldErrors,
     })
-    throw err;
+    console.log(err);
   }
   await Gacha.create(data)
     .then(gacha => {
       res.status(201).json(gacha);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
     })
 })
 
 router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', '名前は必須です。').notEmpty();
-  req.checkBody('point', 'ポイントが必要です。').notEmpty();
-  req.checkBody('win_probability', '確率トが必要です。').notEmpty();
+  req.checkBody('point', 'ポイントが必須です。').notEmpty();
+  req.checkBody('win_probability', '確率トが必須です。').notEmpty();
   req.checkBody('category_id', ' カテゴリーは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
@@ -310,7 +310,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
       res.status(201).json(gacha);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
@@ -324,7 +324,7 @@ router.post('/:gachaId/image', ensureAuthenticated, upload.single('image'), asyn
       res.json({ imageUrl: `uploads/${req.file.filename}` });
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 });
@@ -428,7 +428,7 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 
         })
         .catch(err => {
-          throw err;
+          console.log(err);
           return next(err);
         })
 })
@@ -589,7 +589,7 @@ router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res,
       });
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
@@ -602,7 +602,7 @@ router.get('/histories', ensureAuthenticated, async function (req, res, next) {
       res.status(201).json(gifts);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
@@ -621,7 +621,7 @@ router.get('/gifts/orders', ensureAuthenticated, async function (req, res, next)
       res.status(201).json(gifts);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
@@ -644,7 +644,7 @@ router.get('/gifts/:userId/remain', ensureAuthenticated, async function (req, re
       res.status(201).json(gifts);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
