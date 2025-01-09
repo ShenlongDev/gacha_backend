@@ -277,7 +277,7 @@ var newUser = new User({
   admin: true
 });
 User.createUser(newUser, function (err, user) {
-  if (err) throw err;
+  if (err) console.log(err);
   console.log(user);
 });
 

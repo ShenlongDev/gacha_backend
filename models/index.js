@@ -27,6 +27,7 @@ db.User.hasMany(db.Coupon, { foreignKey: 'user_id' });
 db.Coupon.belongsTo(db.User, { foreignKey: 'user_id' });
 db.User.hasMany(db.GachaScore, { foreignKey: 'user_id' });
 db.GachaScore.belongsTo(db.User, { foreignKey: 'user_id' });
+db.User.hasMany(db.GachaUser, { foreignKey: 'user_id' });
 db.GachaUser.belongsTo(db.User, { foreignKey: 'user_id' });
 db.GachaUser.hasMany(db.GachaScore, { foreignKey: 'gacha_user_id' });
 db.Gacha.hasMany(db.GachaUser, { foreignKey: 'gacha_id' });

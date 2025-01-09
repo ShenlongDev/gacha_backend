@@ -11,6 +11,9 @@ module.exports = (sequelize, Sequelize) => {
     },
     state: {
       type: Sequelize.INTEGER,
+    },
+    point: {
+      type: Sequelize.INTEGER,
     }
   },
     {

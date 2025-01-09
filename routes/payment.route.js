@@ -3,7 +3,6 @@ var router = express.Router();
 const ensureAuthenticated = require('../modules/ensureAuthenticated');
 const { Payment, User } = require("../models");
 
-// GET /badges
 router.get('/all', ensureAuthenticated, async function (req, res, next) {
   await Payment.findAll()
     .then(payments => {
@@ -38,7 +37,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
     })
     .catch(err => {
       console.error(err);
-      throw err;
+      console.log(err);
     });
 })
 

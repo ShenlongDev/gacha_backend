@@ -63,7 +63,7 @@ router.get('/:giftId/item', async function (req, res, next) {
 router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', 'ギフト名は必須です。').notEmpty();
-  req.checkBody('point', 'ギフトポイントは必要です。').notEmpty();
+  req.checkBody('point', 'ギフトポイントは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -81,7 +81,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
       res.status(200).json(gift);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
       return next(err);
     })
 })
@@ -89,13 +89,13 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
 router.post('/add', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', 'ギフト名は必須です。').notEmpty();
-  req.checkBody('point', 'ギフトポイントは必要です。').notEmpty();
+  req.checkBody('point', 'ギフトポイントは必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
       errors: missingFieldErrors,
     })
-    throw err;
+    console.log(err);
     return next(err)
   }
   await Gift.create(data)
@@ -103,7 +103,7 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
       res.status(201).json(gift);
     })
     .catch(err => {
-      throw err;
+      console.log(err);
     })
 })
 
@@ -116,7 +116,7 @@ router.post('/:giftId/image', ensureAuthenticated, upload.single('image'), async
       res.json({ imageUrl: `uploads/${req.file.filename}` });
     })
     .catch(err => {
-      throw err;
+      console.log(err);
     })
 });
 
@@ -126,6 +126,7 @@ router.get('/:giftId/delete', ensureAuthenticated, async function (req, res, nex
   const pageSize = req.query.limit || 10;
   const startIndex = (pageNumber - 1) * pageSize;
   const endIndex = pageNumber * pageSize;
+  
   await Gift.destroy({
     where: {
       id: giftId
