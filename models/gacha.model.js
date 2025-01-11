@@ -33,11 +33,20 @@ module.exports = (sequelize, Sequelize) => {
     content: {
       type: Sequelize.STRING,
     },
-    limit: {
+    total_limit: {
       type: Sequelize.INTEGER,
     },
-    cnt: {
+    user_limit: {
       type: Sequelize.INTEGER,
+    },
+    event_status: {
+      type: Sequelize.BOOLEAN,
+    },
+    onetime_limit: {
+      type: Sequelize.BOOLEAN,
+    },
+    prize_list: {
+      type: Sequelize.TEXT,
     }
   },
     {

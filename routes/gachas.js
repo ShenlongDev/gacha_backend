@@ -266,8 +266,11 @@ router.post('/add', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', '名前は必須です。').notEmpty();
   req.checkBody('point', 'ポイントが必須です。').notEmpty();
-  req.checkBody('win_probability', '確率トが必須です。').notEmpty();
-  req.checkBody('category_id', ' カテゴリーは必須です。').notEmpty();
+  // req.checkBody('win_probability', '確率トが必須です。').notEmpty();
+  req.checkBody('category_id', 'カテゴリーは必須です。').notEmpty();
+  req.checkBody('prize_list', '景品リストは必須です。').notEmpty();
+  req.checkBody('total_limit', '全体の回数は必須です。').notEmpty();
+  req.checkBody('user_limit', '一人当たりの最大ガチャ参加可能回数は必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -288,8 +291,11 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', '名前は必須です。').notEmpty();
   req.checkBody('point', 'ポイントが必須です。').notEmpty();
-  req.checkBody('win_probability', '確率トが必須です。').notEmpty();
-  req.checkBody('category_id', ' カテゴリーは必須です。').notEmpty();
+  // req.checkBody('win_probability', '確率トが必須です。').notEmpty();
+  req.checkBody('category_id', 'カテゴリーは必須です。').notEmpty();
+  req.checkBody('prize_list', '景品リストは必須です。').notEmpty();
+  req.checkBody('total_limit', '全体の回数は必須です。').notEmpty();
+  req.checkBody('user_limit', '一人当たりの最大ガチャ参加可能回数は必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -299,14 +305,15 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   }
   await Gacha.findOne({ where: { id: data.id } })
     .then(async (gacha) => {
-      await gacha.update({
-        name: data.name,
-        point: data.point,
-        win_probability: data.win_probability,
-        category_id: data.category_id,
-        content: data.content,
-        badge_ids: data.badge_ids
-      });
+      await gacha.update(data);
+      // await gacha.update({
+      //   name: data.name,
+      //   point: data.point,
+      //   win_probability: data.win_probability,
+      //   category_id: data.category_id,
+      //   content: data.content,
+      //   badge_ids: data.badge_ids
+      // });
       res.status(201).json(gacha);
     })
     .catch(err => {
