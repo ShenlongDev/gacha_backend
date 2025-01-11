@@ -377,7 +377,8 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
           let gift_list = [];
           for (let i = 1; i <= num; i++) {
 
-            let gift_point = Math.ceil(getRandomVal(gacha.point, gacha.win_probability));
+            // let gift_point = Math.ceil(getRandomVal(gacha.point, gacha.win_probability));
+            let gift_point = Math.ceil(getRandomVal(gacha.point, 1));
 
             if (gift_point > 1 && 5 > gift_point) gift_point = 1;
             if (gift_point > 4 && 10 > gift_point) gift_point = 5;
