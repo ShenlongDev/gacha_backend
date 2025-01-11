@@ -63,6 +63,7 @@ router.get('/:prizeId/item', async function (req, res, next) {
 router.post('/edit', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', '景品名は必須です。').notEmpty();
+  // req.checkBody('stock', '景品在庫は必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {
@@ -74,7 +75,8 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
     .then(async (prize) => {
       await prize.update({
         name: data.name,
-        image: data.image
+        image: data.image,
+        // stock: data.stock
       });
       res.status(200).json(prize);
     })
@@ -87,6 +89,7 @@ router.post('/edit', ensureAuthenticated, async function (req, res, next) {
 router.post('/add', ensureAuthenticated, async function (req, res, next) {
   let data = req.body;
   req.checkBody('name', '景品名は必須です。').notEmpty();
+  // req.checkBody('stock', '景品在庫は必須です。').notEmpty();
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('register error', 400, 'missing_field', {

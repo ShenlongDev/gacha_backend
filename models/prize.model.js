@@ -5,7 +5,10 @@ module.exports = (sequelize, Sequelize) => {
     },
     image: {
       type: Sequelize.STRING,
-    }
+    },
+    // stock: {
+    //   type: Sequelize.INTEGER
+    // }
   },
     {
       timestamps: false
