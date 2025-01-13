@@ -19,6 +19,7 @@ db.Notification = require("./notification.model.js")(sequelize, Sequelize);
 db.Log = require("./log.model.js")(sequelize, Sequelize);
 db.Coupon = require("./coupon.model.js")(sequelize, Sequelize);
 db.Prize = require("./prize.model.js")(sequelize, Sequelize);
+db.Header = require("./header.model.js")(sequelize, Sequelize);
 
 db.GachaCategory.hasMany(db.Gacha, { foreignKey: 'category_id' });
 db.Gacha.belongsTo(db.GachaCategory, { foreignKey: 'category_id' });
