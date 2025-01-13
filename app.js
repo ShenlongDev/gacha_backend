@@ -20,6 +20,7 @@ var emailRouter  = require('./routes/email.route');
 var twilioRouter  = require('./routes/twilio.route');
 var couponRouter  = require('./routes/coupon.route');
 var prizeRouter  = require('./routes/prize.route');
+var headerRouter  = require('./routes/header.route');
 
 var app = express();
 app.use(cors());
@@ -71,6 +72,7 @@ app.use('/emails', emailRouter);
 app.use('/twilio', twilioRouter);
 app.use('/coupons', couponRouter);
 app.use('/prizes', prizeRouter);
+app.use('/headers', headerRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
