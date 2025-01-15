@@ -39,7 +39,7 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
     })
 })
 
-router.get('/all', ensureAuthenticated, async function (req, res, next) {
+router.get('/all', async function (req, res, next) {
   await Header.findAll()
     .then(headers => {
       res.status(200).json(headers);

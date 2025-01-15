@@ -92,6 +92,10 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    is_receiving: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
   },
     {
       timestamps: false
