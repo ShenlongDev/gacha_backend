@@ -198,6 +198,7 @@ router.post('/login', async function (req, res, next) {
             deposit: user.deposit,
             invite_send_code: user.invite_send_code,
             mile: user.mile,
+            is_receiving: user.is_receiving
           })
         }
         else {
@@ -867,6 +868,24 @@ router.post('/assign/role', async function (req, res, next) {
   .then(async user => {
     await user.update({
       role: role
+    })
+    .then(user => {
+      res.status(201).json(user);
+    })
+    .catch(err => {
+      console.log(err);
+      return next(err);
+    })
+  })
+});
+
+router.post('/receive/notification', async function (req, res, next) {
+  const { userId, status } = req.body;
+  console.log(userId, status);
+  await User.findByPk(userId)
+  .then(async user => {
+    await user.update({
+      is_receiving: status
     })
     .then(user => {
       res.status(201).json(user);
