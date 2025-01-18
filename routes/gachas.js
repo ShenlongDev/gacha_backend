@@ -183,18 +183,19 @@ router.get('/category/:category', async function (req, res, next) {
       whereClause.name = { [Op.like]: `%${key}%` };
     }
 
-    // if (badges) {
-    //   const badgeArray = badges.split(',').map(Number).sort();
-    //   const badgeArrayString = JSON.stringify(badgeArray);
-
-    //   whereClause = {
-    //     ...whereClause,
-    //     [Op.and]: sequelize.literal(`
-    //       (SELECT jsonb_array_elements_text(badge_ids::jsonb) ORDER BY jsonb_array_elements_text) = '${badgeArrayString}'
-    //     `),
-    //   };
-    // }
-
+    if (badges) {
+      const badgeArray = badges.split(',').map(Number).sort();
+      const badgeArrayString = badgeArray.map(id => id.toString());
+    
+      whereClause = {
+        ...whereClause,
+        badge_ids: {
+          [Op.or]: badgeArrayString.map(badgeId => ({
+            [Op.like]: `%${badgeId}%`
+          }))
+        }
+      };
+    }
 
     // Apply order based on order if provided
     if (order) {
@@ -208,7 +209,6 @@ router.get('/category/:category', async function (req, res, next) {
         console.warn("Invalid order value:", order); // Handle unexpected values
       }
     }
-
 
     // Fetch the data from the database
     const gachas = await Gacha.findAll({
