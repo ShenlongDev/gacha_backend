@@ -50,7 +50,7 @@ router.post('/:status', ensureAuthenticated, async function (req, res, next) {
                     attributes: ['score'],
                 });
                 const totalScore = scores.reduce((sum, score) => sum + score.score, 0);
-                const pointsToAdd = Math.floor(totalScore * 0.7);
+                const pointsToAdd = Math.floor(totalScore);
 
                 const user = await User.findOne({ where: { id: userId } });
                 if (user) {

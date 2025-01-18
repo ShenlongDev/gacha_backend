@@ -433,7 +433,7 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
             if (reducedIndex !== -1) {
               prizes[reducedIndex] = {
                 ...prizes[reducedIndex],
-                prize_number: prizes[reducedIndex].prize_number - 1
+                prize_number: prizes[reducedIndex].prize_number - num
               };
             } else {
               console.log('Prize number is already zero, cannot reduce further.');
@@ -443,6 +443,7 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 
             newGacha = {
               ...gacha,
+              total_limit: gacha.total_limit - 1,
               prize_list: JSON.stringify(prizes)
             };
 
