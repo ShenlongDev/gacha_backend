@@ -7,7 +7,7 @@ const config = require('../configs/jwt-config')
 const ensureAuthenticated = require('../modules/ensureAuthenticated')
 const GachaJS = require('../utils/gacha');
 const { Op } = require('sequelize');
-const { Gacha, User, GachaUser, GachaCategory, Address, Badge, GachaScore } = require("../models");
+const { Gacha, User, GachaUser, GachaCategory, Address, Badge, GachaScore, Prize, sequelize } = require("../models");
 
 const multer = require('multer');
 var path = require('path');
@@ -161,95 +161,82 @@ router.get('/categories/:categoryId/delete', ensureAuthenticated, async function
 })
 
 router.get('/category/:category', async function (req, res, next) {
-  //check
-  const category = req.params.category;
-  const badgs = req.params.badgs;
-  const key = req.params.key;
-  const order = req.params.sel_order;
+  try {
+    const { category } = req.params;
+    const { badges, key, order } = req.query;
+    console.log("category", category, "badges", badges, "key", key, "order", order);
 
-  const pageNumber = req.query.page || 1;
-  const pageSize = req.query.limit || 10;
-  const startIndex = (pageNumber - 1) * pageSize;
-  const endIndex = pageNumber * pageSize;
+    const pageNumber = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.limit) || 10;
+    const startIndex = (pageNumber - 1) * pageSize;
 
-  if (category == 'all') {
-    await Gacha.findAll({ include: [GachaCategory] })
-      .then(gachas => {
-        res.status(201).json({
-          data: gachas.slice(startIndex, endIndex),
-          currentPage: parseInt(pageNumber),
-          totalPages: Math.ceil(gachas.length / pageSize),
-          totalRecords: gachas.length
-        });
-      })
-      .catch(err => {
-        console.log(err);      
-      })
-  }
-  else if (category == 'popular') {
-    await Gacha.findAll({
-      where: { users: { [Op.ne]: 0 } },
-      order: [
-        ["users", "ASC"],
-      ],
-      include: [GachaCategory]
-    })
-      .then(gachas => {
-        res.status(201).json({
-          data: gachas.slice(startIndex, endIndex),
-          currentPage: parseInt(1),
-          totalPages: 1,
-          totalRecords: gachas.length
-        });
-      })
-      .catch(err => {
-        console.log(err);      
-      })
-  }
-  else if (category == 'new') {
-    await Gacha.findAll({
-      order: [
-        ["createdAt", "DESC"],
-      ],
-      include: [GachaCategory]
-    })
-      .then(gachas => {
-        res.status(201).json({
-          data: gachas.slice(startIndex, endIndex),
-          currentPage: parseInt(1),
-          totalPages: 1,
-          totalRecords: gachas.length
-        });
-      })
-      .catch(err => {
-        return next(err);
-      })
-  }
-  else {
-    await Gacha.findAll({
-      where: {
-        category_id: category
-      },
+    let whereClause = {};
+    let orderClause = [];
+
+    if (category === 'all') {
+
+    } else {
+      whereClause.category_id = category;
+    }
+
+    if (key) {
+      whereClause.name = { [Op.like]: `%${key}%` };
+    }
+
+    // if (badges) {
+    //   const badgeArray = badges.split(',').map(Number).sort();
+    //   const badgeArrayString = JSON.stringify(badgeArray);
+
+    //   whereClause = {
+    //     ...whereClause,
+    //     [Op.and]: sequelize.literal(`
+    //       (SELECT jsonb_array_elements_text(badge_ids::jsonb) ORDER BY jsonb_array_elements_text) = '${badgeArrayString}'
+    //     `),
+    //   };
+    // }
+
+
+    // Apply order based on order if provided
+    if (order) {
+      if (order == 1) {
+        orderClause = [['createdAt', 'ASC']]; // Order by creation date ascending
+      } else if (order == 2) {
+        orderClause = [['point', 'DESC']]; // Order by point descending
+      } else if (order == 3) {
+        orderClause = [['point', 'ASC']]; // Order by point ascending
+      } else {
+        console.warn("Invalid order value:", order); // Handle unexpected values
+      }
+    }
+
+
+    // Fetch the data from the database
+    const gachas = await Gacha.findAll({
+      where: whereClause,
+      order: orderClause,
       include: [
         {
           model: GachaCategory,
           attributes: ['name']
         }
       ]
-    })
-      .then(gachas => {
-        res.status(201).json({
-          data: gachas.slice(startIndex, endIndex),
-          currentPage: parseInt(pageNumber),
-          totalPages: Math.ceil(gachas.length / pageSize),
-          totalRecords: gachas.length
-        });
-      })
-      .catch(err => {
-        return next(err);
-      })
+    });
+
+    // Paginate the results
+    const paginatedData = gachas.slice(startIndex, startIndex + pageSize);
+
+    res.status(200).json({
+      data: paginatedData,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(gachas.length / pageSize),
+      totalRecords: gachas.length,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
   }
-})
+});
+
 
 router.get('/:gachaId/item', async function (req, res, next) {
   const gachaId = req.params.gachaId;
@@ -370,14 +357,20 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 
   await Gacha.findOne({ where: { id: gachaId } })
     .then(async (gacha) => {
+      let prizes = JSON.parse(gacha.prize_list);
+
       await User.findOne({ where: { email: decoded?.email } })
         .then(async (user) => {
 
           let sum = 0;
           let gift_list = [];
+          let prize_ids = [];
+
           for (let i = 1; i <= num; i++) {
 
             // let gift_point = Math.ceil(getRandomVal(gacha.point, gacha.win_probability));
+            /*
+            // old logic
             let gift_point = Math.ceil(getRandomVal(gacha.point, 1));
 
             if (gift_point > 1 && 5 > gift_point) gift_point = 1;
@@ -398,47 +391,102 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 
             console.log("gift_point", gift_point);
 
-            gift_list.push(gift_point);
+            gift_point = gift_list.push(gift_point);
             sum += gift_point * 1;
+            */
+
+            // new logic
+            const gradeWeights = {
+              s: 1,  // Least likely
+              a: 2,
+              b: 3,
+              c: 4,
+              o: 5   // Most likely
+            };
+
+            const weightedPrizes = [];
+
+            console.log('before', prizes);
+
+            prizes.forEach(prize => {
+              const count = parseInt(prize.prize_number, 10);
+              const weight = gradeWeights[prize.grade];
+
+              for (let i = 0; i < count * weight; i++) {
+                weightedPrizes.push(prize);
+              }
+            });
+
+            console.log(weightedPrizes.length);
+            const randomIndex = Math.floor(Math.random() * weightedPrizes.length);
+            var selectedPrize = weightedPrizes[randomIndex];
+            console.log(selectedPrize);
+
+            gift_list.push(Number(selectedPrize.return_point));
+            sum += Number(selectedPrize.return_point) * 1;
+
+            prize_ids.push(Number(selectedPrize.prize_id));
+
+            const reducedIndex = prizes.findIndex(prize => prize.prize_id === selectedPrize.prize_id);
+
+            console.log(reducedIndex)
+            if (reducedIndex !== -1) {
+              prizes[reducedIndex] = {
+                ...prizes[reducedIndex],
+                prize_number: prizes[reducedIndex].prize_number - 1
+              };
+            } else {
+              console.log('Prize number is already zero, cannot reduce further.');
+            }
+
+            console.log('after', prizes);
+
+            newGacha = {
+              ...gacha,
+              prize_list: JSON.stringify(prizes)
+            };
+
+            await gacha.update(newGacha);
           }
 
           // await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gift_list) })
           await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: num })
             .then(async gachaUser => {
 
-              const scores = gift_list.map(score => ({
+              const scores = gift_list.map((score, index) => ({
                 user_id: gachaUser.user_id,
                 gacha_id: gachaUser.gacha_id,
                 gacha_user_id: gachaUser.id,
-                score: score
+                score: score,
+                prize_id: prize_ids[index]
               }));
-            
+
               await GachaScore.bulkCreate(scores);
             });
 
-              await User.findOne({ where: { id: user.id } })
-                .then(async (u) => {
+          await User.findOne({ where: { id: user.id } })
+            .then(async (u) => {
 
-                  if (user) {
+              if (user) {
 
-                    await u.update({ point: u.point * 1 - gacha.point * num });
-                    res.status(201).json(u);
+                await u.update({ point: u.point * 1 - gacha.point * num });
+                res.status(201).json(u);
 
-                  }
-                })
-                .catch(err => {
-                  return next(err);
-                })
+              }
+            })
+            .catch(err => {
+              return next(err);
+            })
 
-            });
+        });
 
 
 
-        })
-        .catch(err => {
-          console.log(err);
-          return next(err);
-        })
+    })
+    .catch(err => {
+      console.log(err);
+      return next(err);
+    })
 })
 
 router.get('/nowGetGacha', ensureAuthenticated, async function (req, res) {
@@ -531,18 +579,18 @@ router.get('/gifts/:userId/deliver/:giftId', ensureAuthenticated, async function
 
 router.get('/:userId/histories/:status', ensureAuthenticated, async function (req, res, next) {
   const { userId, status } = req.params;
-  
+
   await GachaUser.findAll({
     where: { user_id: userId },
-    order:[['createdAt', 'DESC']],
+    order: [['createdAt', 'DESC']],
     include: [
       {
         model: Gacha,
-        attributes: ['name']
+        attributes: ['name', 'prize_list']
       },
       {
         model: GachaScore,
-        attributes: ['id', 'score', 'status'],
+        attributes: ['id', 'score', 'status', 'prize_id'],
         ...(status !== 'all' && { where: { status } })
       }
     ]
@@ -558,7 +606,7 @@ router.get('/:userId/histories/:status', ensureAuthenticated, async function (re
 
 router.get('/:userId/histories', ensureAuthenticated, async function (req, res, next) {
   const { userId } = req.params;
-  
+
   await GachaScore.findAll({
     where: {
       user_id: userId,
@@ -604,7 +652,7 @@ router.get('/histories/:gachaId', ensureAuthenticated, async function (req, res,
 
 router.get('/histories', ensureAuthenticated, async function (req, res, next) {
   await GachaUser.findAll({
-     
+
   })
     .then(async (gifts) => {
       res.status(201).json(gifts);

@@ -13,6 +13,12 @@ module.exports = (sequelize, Sequelize) => {
 			type: Sequelize.ENUM(['ordered', 'delivering', 'completed', 'returned']),
 			defaultValue: 'ordered'
 		},
+		gacha_user_id: {
+			type: Sequelize.INTEGER
+		},
+		prize_id: {
+			type: Sequelize.INTEGER
+		}
 	},
 		{
 			timestamps: false
