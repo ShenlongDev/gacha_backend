@@ -51,7 +51,7 @@ router.get('/payment', async (req, res) => {
     name: user.first_name,
   });
 
-  const { amount, userId, paymentMethodId, cardType, couponid, coin } = Params;
+  const { userId, amount, couponId, coin, paymentMethodId, cardType } = Params;
 
   if (cardType == 'card') {
     try {
@@ -72,9 +72,9 @@ router.get('/payment', async (req, res) => {
                 deposit: user.deposit * 1 + coin * 1
               });
 
-              console.log(couponid);
+              console.log(couponId);
 
-              let coupon = await Coupon.findOne({ where: { id: couponid } });
+              let coupon = await Coupon.findOne({ where: { id: couponId } });
               if (coupon) {
                 await coupon.update({
                   state: 2,
@@ -296,7 +296,7 @@ router.post('/:userId/verify', async function (req, res, next) {
 })
 
 router.post('/:userId/exit', async function (req, res, next) {
-  const { first_name } = req.body || {};
+  const { reason } = req.body || {};
   const userId = req.params.userId;
 
   await User.findOne({ where: { id: userId } })
@@ -305,21 +305,16 @@ router.post('/:userId/exit', async function (req, res, next) {
         return res.json({ msg: "no" });
       }
       else {
-        await user.update({ is_exit: true, reason: first_name });
-
+        await user.update({ is_exit: true, reason: reason });
         return res.json({ msg: "ok" });
-
       }
     })
     .catch(err => {
       return next(err);
-    })
-
-
+    });
 })
 
 router.get('/:userId/exit', async function (req, res, next) {
-  const { first_name } = req.body || {};
   const userId = req.params.userId;
 
   await User.findOne({ where: { id: userId, is_exit: true } })
@@ -328,63 +323,45 @@ router.get('/:userId/exit', async function (req, res, next) {
         return res.json({ msg: "no" });
       }
       else {
-
         return res.json({ msg: "ok", resaon: user.reason });
-
       }
     })
     .catch(err => {
       return next(err);
-    })
-
+    });
 })
 
 router.get('/:userId/coupon', async function (req, res, next) {
-
-
   const userId = req.params.userId;
-
-  await Coupon.findAll({ where: { user_id: userId, state: 1 } })
-    .then(async (user) => {
-      if (!user) {
-        return res.json({ msg: "no" });
-      }
-      else {
-        console.log("ffff");
-        return res.json({ msg: "ok", resaon: user });
-
-      }
+  
+  // await Coupon.findAll({ where: { user_id: userId, state: 1 } })
+  await Coupon.findAll({ where: { user_id: userId } })
+  .then(coupons => {
+      res.status(200).json({ coupons });
     })
     .catch(err => {
       return next(err);
-    })
-
+    });
 })
 
 router.post('/:userId/coupon', async function (req, res, next) {
-
-  const { first_name } = req.body || {};
+  const { couponCode } = req.body || {};
   const userId = req.params.userId;
 
-  await Coupon.findOne({ where: { user_id: userId, text: first_name } })
+  await Coupon.findOne({ where: { user_id: userId, text: couponCode } })
     .then(async (user) => {
       if (!user) {
         return res.json({ msg: "no" });
       }
       else {
-
         await user.update({ state: 1 });
-
         return res.json({ msg: "ok" });
-
       }
     })
     .catch(err => {
       return next(err);
-    })
-
+    });
 })
-
 
 router.get('/:userId/verify', async function (req, res, next) {
   const { last_name } = req.body || {};
@@ -396,16 +373,12 @@ router.get('/:userId/verify', async function (req, res, next) {
         return res.json({ msg: "no" });
       }
       else {
-
         return res.json({ msg: "ok", phone: user.phone_number });
-
       }
     })
     .catch(err => {
       return next(err);
-    })
-
-
+    });
 })
 
 router.get('/', ensureAuthenticated, async function (req, res, next) {

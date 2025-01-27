@@ -361,7 +361,6 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 
       await User.findOne({ where: { email: decoded?.email } })
         .then(async (user) => {
-
           let sum = 0;
           let gift_list = [];
           let prize_ids = [];
@@ -410,17 +409,19 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 
             prizes.forEach(prize => {
               const count = parseInt(prize.prize_number, 10);
-              const weight = gradeWeights[prize.grade];
-
-              for (let i = 0; i < count * weight; i++) {
-                weightedPrizes.push(prize);
+              if (count > 0) {
+                const weight = gradeWeights[prize.grade];
+  
+                for (let i = 0; i < count * weight; i++) {
+                  weightedPrizes.push(prize);
+                }
               }
             });
 
             console.log(weightedPrizes.length);
             const randomIndex = Math.floor(Math.random() * weightedPrizes.length);
             var selectedPrize = weightedPrizes[randomIndex];
-            console.log(selectedPrize);
+            console.log("selectedPrize", selectedPrize);
 
             gift_list.push(Number(selectedPrize.return_point));
             sum += Number(selectedPrize.return_point) * 1;
@@ -433,7 +434,7 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
             if (reducedIndex !== -1) {
               prizes[reducedIndex] = {
                 ...prizes[reducedIndex],
-                prize_number: prizes[reducedIndex].prize_number - num
+                prize_number: prizes[reducedIndex].prize_number - 1
               };
             } else {
               console.log('Prize number is already zero, cannot reduce further.');
@@ -449,11 +450,9 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
 
             await gacha.update(newGacha);
           }
-
           // await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: JSON.stringify(gift_list) })
           await GachaUser.create({ user_id: user.id, gacha_id: gachaId, gift_point: sum, gift_info: num })
             .then(async gachaUser => {
-
               const scores = gift_list.map((score, index) => ({
                 user_id: gachaUser.user_id,
                 gacha_id: gachaUser.gacha_id,
@@ -469,20 +468,14 @@ router.get('/:gachaId/gifts/:num', ensureAuthenticated, async function (req, res
             .then(async (u) => {
 
               if (user) {
-
                 await u.update({ point: u.point * 1 - gacha.point * num });
                 res.status(201).json(u);
-
               }
             })
             .catch(err => {
               return next(err);
             })
-
         });
-
-
-
     })
     .catch(err => {
       console.log(err);
