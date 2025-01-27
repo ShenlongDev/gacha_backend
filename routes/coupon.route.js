@@ -170,7 +170,6 @@ router.get('/:couponId/delete', ensureAuthenticated, async function (req, res, n
 
 router.post('alert/coupon', async (req, res) => {
   // Send reset link via email
-  
 })
 
 module.exports = router;
